@@ -4,6 +4,34 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<url>https://github.com/mygodness100/SimpleUtils</url>
+		<connection>https://github.com/mygodness100/SimpleUtils.git</connection>
+		<developerConnection>https://github.com/mygodness100/SimpleUtils</developerConnection>
+	</scm>
+
+	<developers>
+		<developer>
+			<name>Sunshine</name>
+			<email>mygodness30@sina.com</email>
+			<url>https://github.com/mygodness100/SimpleUtils</url>
+		</developer>
+	</developers>
+
 	<groupId>com.wy</groupId>
 	<artifactId>SimpleUtils</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
