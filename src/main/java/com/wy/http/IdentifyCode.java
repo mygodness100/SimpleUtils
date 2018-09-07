@@ -14,11 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
-
 public class IdentifyCode extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	private static final Logger logger = Logger.getLogger(IdentifyCode.class);
 
 	@Override
 	public void service(HttpServletRequest req, HttpServletResponse res)
@@ -58,36 +55,35 @@ public class IdentifyCode extends HttpServlet {
 			// 缓存
 			buf.append(str);
 		}
-		logger.info(buf.toString());
 		// 获得session
 		HttpSession session = req.getSession();
 		// 保存值
 		session.setAttribute("number", buf.toString());
 		// 验证的时候由于同一个sessionid只会从同一个session中取,直接取保存在session中的值即可,为了不重复多次输入验证码,需要在每次验证验证码之后将其删除
-		//登录或其他需要的地方,获得用户提交的数据 imageNumber
-//				String imageNumber = request.getParameter("imageNumber");
-//				//需要判断  从session获得保存的验证码的信息
-//				// * 获得session
-//				HttpSession session = request.getSession();
-//				// * 获得保存的值number
-//				String number = (String)session.getAttribute("number");
-//				
-//				PrintWriter out = response.getWriter();
-//				
-//				//匹配 用户提交的数据与程序保存的数据
-//				if(number != null){ //程序保存
-//					if(number.equalsIgnoreCase(imageNumber)){
-//						//输入正确
-//						out.print("验证通过");
-//					} else {
-//						//验证码错误
-//						out.print("验证码错误");
-//					}
-//					//无论情况，程序存储的数据，只能使用一次
-//					session.removeAttribute("number");
-//				} else {
-//					out.print("验证码失效");
-//				}
+		// 登录或其他需要的地方,获得用户提交的数据 imageNumber
+		// String imageNumber = request.getParameter("imageNumber");
+		// //需要判断 从session获得保存的验证码的信息
+		// // * 获得session
+		// HttpSession session = request.getSession();
+		// // * 获得保存的值number
+		// String number = (String)session.getAttribute("number");
+		//
+		// PrintWriter out = response.getWriter();
+		//
+		// //匹配 用户提交的数据与程序保存的数据
+		// if(number != null){ //程序保存
+		// if(number.equalsIgnoreCase(imageNumber)){
+		// //输入正确
+		// out.print("验证通过");
+		// } else {
+		// //验证码错误
+		// out.print("验证码错误");
+		// }
+		// //无论情况，程序存储的数据，只能使用一次
+		// session.removeAttribute("number");
+		// } else {
+		// out.print("验证码失效");
+		// }
 		// 干扰线
 		for (int i = 0; i < 10; i++) {
 			// 设置随机颜色

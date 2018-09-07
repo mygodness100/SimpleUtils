@@ -9,13 +9,11 @@ import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
-
-import org.apache.commons.codec.Charsets;
-import org.apache.log4j.Logger;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
@@ -32,13 +30,11 @@ import com.wy.io.FileUtils;
 import com.wy.utils.StrUtils;
 
 /**
- * 二维码生成
- * 利用google的zxing.jar包生成,
+ * 二维码生成 利用google的zxing.jar包生成,
  * jar包下载地址:https://oss.sonatype.org/content/repositories/releases/com/google/zxing/core/3.2.1/
  * githup地址:https://github.com/zxing/zxing/tree/zxing-3.0.0
  */
 public class QREncode {
-	private static final Logger logger = Logger.getLogger(QREncode.class);
 
 	private static final int WHITE = 0xFF000000;
 	private static final int BLACK = 0xFFFFFFFF;
@@ -78,32 +74,31 @@ public class QREncode {
 		try {
 			BufferedImage image = createImage(content, imgPath, isCompress);
 			FileUtils.mkdirs(desPath);
-			ImageIO.write(image, IMG_SUFFIX, new File(desPath + File.separator
-					+ String.format(IMG_DES, CryptoUtils.UUID())));
+			ImageIO.write(image, IMG_SUFFIX,
+					new File(desPath + File.separator + String.format(IMG_DES, CryptoUtils.UUID())));
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			e.getMessage();
 		}
 	}
-	
+
 	public static void encodeIO(String content, OutputStream output) {
 		encodeIO(content, output, false);
 	}
-	
-	public static void encodeIO(String content, OutputStream output,boolean isCompress) {
+
+	public static void encodeIO(String content, OutputStream output, boolean isCompress) {
 		encodeIO(content, null, output, isCompress);
 	}
-	
+
 	public static void encodeIO(String content, String imgPath, OutputStream output) {
 		encodeIO(content, imgPath, output, false);
 	}
-	
-	public static void encodeIO(String content, String imgPath, OutputStream output,
-			boolean isCompress) {
+
+	public static void encodeIO(String content, String imgPath, OutputStream output, boolean isCompress) {
 		try {
 			BufferedImage image = createImage(content, imgPath, isCompress);
 			ImageIO.write(image, IMG_SUFFIX, output);
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			e.getMessage();
 		}
 	}
 
@@ -115,11 +110,11 @@ public class QREncode {
 			Map<EncodeHintType, Object> map = new HashMap<>();
 			map.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);
 			// 设置字符集
-			map.put(EncodeHintType.CHARACTER_SET, Charsets.UTF_8.toString());
+			map.put(EncodeHintType.CHARACTER_SET, StandardCharsets.UTF_8.toString());
 			// 设置边框
 			map.put(EncodeHintType.MARGIN, 1);
-			BitMatrix bitMatrix = new MultiFormatWriter().encode(content, BarcodeFormat.QR_CODE,
-					QRCODE_SIZE, QRCODE_SIZE, map);
+			BitMatrix bitMatrix = new MultiFormatWriter().encode(content, BarcodeFormat.QR_CODE, QRCODE_SIZE,
+					QRCODE_SIZE, map);
 			int width = bitMatrix.getWidth();
 			int height = bitMatrix.getHeight();
 			BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -194,11 +189,11 @@ public class QREncode {
 			QRDecode source = new QRDecode(image);
 			BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
 			Map<DecodeHintType, String> hints = new HashMap<>();
-			hints.put(DecodeHintType.CHARACTER_SET, Charsets.UTF_8.toString());
+			hints.put(DecodeHintType.CHARACTER_SET, StandardCharsets.UTF_8.toString());
 			Result result = new MultiFormatReader().decode(bitmap, hints);
 			return result.getText();
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			e.getMessage();
 		}
 		return null;
 	}

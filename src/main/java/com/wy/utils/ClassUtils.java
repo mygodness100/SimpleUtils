@@ -10,14 +10,10 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.log4j.Logger;
-
 import com.alibaba.fastjson.JSON;
 
 public class ClassUtils {
 
-	private static final Logger logger = Logger.getLogger(ClassUtils.class);
 	/**
 	 * 判断非空,只能判断String,hashMap,arraylist,hashset
 	 */
@@ -63,7 +59,7 @@ public class ClassUtils {
 		try {
 			return ((Class<?>)(clazz.getField("TYPE").get(null))).isPrimitive();
 		} catch (Exception e) {
-			logger.info(e);
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -120,7 +116,7 @@ public class ClassUtils {
 			Map<String, Object> map = new HashMap<>();
 			for (Field field : fields) {
 				String key = field.getName();
-				map.put(key, BeanUtils.getProperty(t, StrUtils.lowerFirst(key)));
+				map.put(key, field.get(t));
 			}
 			return map;
 		} catch (Exception e) {

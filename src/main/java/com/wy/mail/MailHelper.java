@@ -17,8 +17,6 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 
-import org.apache.log4j.Logger;
-
 import com.sun.mail.util.MailSSLSocketFactory;
 import com.wy.crypto.CryptoUtils;
 import com.wy.result.Result;
@@ -30,15 +28,12 @@ import com.wy.utils.StrUtils;
  * @FIXME
  */
 public class MailHelper {
-	private static final Logger logger = Logger.getLogger(MailHelper.class);
-
 	/**
 	 * 邮件发送参数校验
 	 */
 	public static Result sendMail(final Mail mail) {
 		String error = Mail.checkParam(mail);
 		if (StrUtils.isNotBlank(error)) {
-			logger.info(MailHelper.class.getName() + error);
 			return Result.resultErr(error);
 		}
 		try {
@@ -106,7 +101,6 @@ public class MailHelper {
 			message.saveChanges();
 			Transport.send(message);
 		} catch (Exception e) {
-			logger.error(e);
 			e.printStackTrace();
 		}
 		return Result.resultOk();
@@ -151,7 +145,6 @@ public class MailHelper {
 			}
 			return des;
 		} catch (Exception e) {
-			logger.error("========添加发送地址失败:" + ads[i]);
 			e.printStackTrace();
 		}
 		return null;

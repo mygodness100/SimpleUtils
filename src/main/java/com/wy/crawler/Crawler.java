@@ -30,7 +30,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.util.NumberUtils;
 
 import com.wy.io.FileUtils;
 import com.wy.io.ImageUtils;
@@ -336,7 +335,7 @@ public final class Crawler extends Thread {
 				int[] times = new int[oldFiles.length];
 				for (int i = 0; i < oldFiles.length; i++) {
 					String serial = oldFiles[i].getName().replaceAll("\\D", "");
-					times[i] = NumberUtils.parseNumber(serial, Integer.class);
+					times[i] = Integer.parseInt(serial);
 				}
 				max = NumUtils.getMax(times) + 1;
 			}

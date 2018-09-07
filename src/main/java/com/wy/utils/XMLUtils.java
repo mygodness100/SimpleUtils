@@ -22,7 +22,6 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.log4j.Logger;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
@@ -45,9 +44,8 @@ import com.wy.common.Encoding;
  * 
  * @author 万杨
  */
+@SuppressWarnings("unchecked")
 public class XMLUtils {
-	private static final Logger logger = Logger.getLogger(XMLUtils.class);
-
 	// 各种结点分类处理
 	private static List<Node> nodes = new ArrayList<>();
 	private static List<Element> elements = new ArrayList<>();
@@ -110,7 +108,7 @@ public class XMLUtils {
 			}
 			return parse(new FileInputStream(filePath), flag);
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -118,7 +116,8 @@ public class XMLUtils {
 	/**
 	 * 对传入的输入流进行解析,默认不解析注释
 	 * 
-	 * @param is 输入流
+	 * @param is
+	 *            输入流
 	 */
 	public static final Document parse(InputStream is) {
 		return parse(is, true);
@@ -139,7 +138,7 @@ public class XMLUtils {
 			reader.setIgnoreComments(flag);
 			return reader.read(is);
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -281,7 +280,7 @@ public class XMLUtils {
 			index = first + tag.length();
 			desList.add(des);
 		}
-		return String.join("",desList);
+		return String.join("", desList);
 	}
 
 	/**
@@ -328,11 +327,13 @@ public class XMLUtils {
 	/**
 	 * 根据属性名查找结点
 	 * 
-	 * @param xpath 表达式的值,只能带有//,/或:,默认的命名空间可以不写,但是非默认的命名空间需写完整
+	 * @param xpath
+	 *            表达式的值,只能带有//,/或:,默认的命名空间可以不写,但是非默认的命名空间需写完整
 	 * @example /beans/bean/mvc:annotaion-driven,完整的格式应该是/beans:beans/beans:bean/mvc:annoation-driven,
 	 *          但默认的命名空间最好由程序确定,否则无法正确是否为默认的命名空间;
 	 * @warn 每个结点必须唯一,暂时还没解决重复结点问题
-	 * @param attr 多属性名,和xpath中每一个表达式对应
+	 * @param attr
+	 *            多属性名,和xpath中每一个表达式对应
 	 * @Fixed
 	 */
 	public static List<Node> getByXPath(Document document, String xpath, String... attrs) {
@@ -384,7 +385,6 @@ public class XMLUtils {
 				xpath = xpath.replaceAll(tag, tag + createAttrVal(attr));
 			}
 		}
-		logger.info(xpath);
 		XPath xPath = document.createXPath(xpath);
 		xPath.setNamespaceURIs(map);
 		List<Node> selectNodes = xPath.selectNodes(document);
@@ -401,7 +401,8 @@ public class XMLUtils {
 	/**
 	 * 获得当前文档中所有带指定属性名的结点,此方法比通过xpath寻找要快,内存消耗暂时不清楚
 	 * 
-	 * @param flag true精准读取,false模糊读取
+	 * @param flag
+	 *            true精准读取,false模糊读取
 	 */
 	public static List<Node> getByAttrs(Document document, boolean flag, String... attrs) {
 		return getNodesByAttr(document, flag, true, attrs);
@@ -417,7 +418,8 @@ public class XMLUtils {
 	/**
 	 * 获得当前文档中所有带指定属性值的节点,此方法比通过xpath寻找要快,内存消耗暂时不清楚
 	 * 
-	 * @param flag true精准读取,false模糊读取
+	 * @param flag
+	 *            true精准读取,false模糊读取
 	 */
 	public static List<Node> getByVals(Document document, boolean flag, String... vals) {
 		return getNodesByAttr(document, flag, false, vals);
@@ -426,12 +428,14 @@ public class XMLUtils {
 	/**
 	 * 从文档中通过属性的名称或值快速查找节点,单一的,只能都是属性名或都是属性值
 	 * 
-	 * @param flag 是否精确查找,true是
-	 * @param key 是否为属性名查找,true是
-	 * @param params 属性名或属性值
+	 * @param flag
+	 *            是否精确查找,true是
+	 * @param key
+	 *            是否为属性名查找,true是
+	 * @param params
+	 *            属性名或属性值
 	 */
-	private static List<Node> getNodesByAttr(Document document, boolean flag, boolean key,
-			String... params) {
+	private static List<Node> getNodesByAttr(Document document, boolean flag, boolean key, String... params) {
 		treeWalk(document);
 		ArrayList<Node> nodes = new ArrayList<>();
 		for (String attr : params) {
@@ -451,7 +455,8 @@ public class XMLUtils {
 	/**
 	 * 没有命名空间直接利用xpath寻找指定属性名元素节点
 	 * 
-	 * @param attrs 属性名
+	 * @param attrs
+	 *            属性名
 	 */
 	public static List<Node> getByXPathAttrsNoNS(Document document, String... attrs) {
 		return StrUtils.isBlank(attrs) ? null : getByXPathNoNS(document, null, attrs);
@@ -469,8 +474,10 @@ public class XMLUtils {
 	/**
 	 * 没有命名空间直接利用xpath寻找指定元素节点
 	 * 
-	 * @param xpath 完整路径时,attrs必须为null,否则报错,不完整路径时,属性名可由attrs填写,但必须和xpath的分段表达式
-	 * @param attr 结点所带的属性名,若是有多个属性,必须对应xpath的分段表达式,否则查不出来
+	 * @param xpath
+	 *            完整路径时,attrs必须为null,否则报错,不完整路径时,属性名可由attrs填写,但必须和xpath的分段表达式
+	 * @param attr
+	 *            结点所带的属性名,若是有多个属性,必须对应xpath的分段表达式,否则查不出来
 	 */
 	public static List<Node> getByXPathNoNS(Document document, String xpath, String... attrs) {
 		// 没有xpath,只有属性值的时候,取得所有对应的属性值
@@ -493,15 +500,16 @@ public class XMLUtils {
 			list.add(createAttrVal(attr));
 		}
 		String desPath = createXPath(xpath, list);
-		logger.info(desPath);
 		return document.selectNodes(desPath);
 	}
 
 	/**
 	 * 没有命名空间利用属性的键值来查询节点
 	 * 
-	 * @param xpath xpath表达式
-	 * @param map 属性键值对,必须与xpath的分段表达式相对应
+	 * @param xpath
+	 *            xpath表达式
+	 * @param map
+	 *            属性键值对,必须与xpath的分段表达式相对应
 	 */
 	public static List<Node> getByXPathNoNS(Document document, String xpath,
 			LinkedHashMap<String, String> map) {
@@ -514,7 +522,6 @@ public class XMLUtils {
 		}
 		// 获得处理后的xpath
 		String desPath = createXPath(xpath, map);
-		logger.info(desPath);
 		return document.selectNodes(desPath);
 	}
 
@@ -542,15 +549,20 @@ public class XMLUtils {
 	/**
 	 * 修改xml某节点的值
 	 * 
-	 * @param inputXml 原xml文件
-	 * @param nodes 要修改的节点
-	 * @param attributename 属性名称
-	 * @param value 新值
-	 * @param outXml 输出文件路径及文件名 如果输出文件为null，则默认为原xml文件
+	 * @param inputXml
+	 *            原xml文件
+	 * @param nodes
+	 *            要修改的节点
+	 * @param attributename
+	 *            属性名称
+	 * @param value
+	 *            新值
+	 * @param outXml
+	 *            输出文件路径及文件名 如果输出文件为null，则默认为原xml文件
 	 * @Fixed
 	 */
-	public static void modifyDocument(File inputXml, String nodes, String attributename,
-			String value, String outXml) {
+	public static void modifyDocument(File inputXml, String nodes, String attributename, String value,
+			String outXml) {
 		try {
 			SAXReader saxReader = new SAXReader();
 			Document document = saxReader.read(inputXml);
@@ -588,7 +600,7 @@ public class XMLUtils {
 			// System.out.println(xml);
 			return DocumentHelper.parseText(text);
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -607,8 +619,8 @@ public class XMLUtils {
 		OutputFormat format = OutputFormat.createPrettyPrint();
 		format.setEncoding(encoding);
 		try {
-			XMLWriter writer = new XMLWriter(
-					new OutputStreamWriter(new FileOutputStream(xmlPath), encoding), format);
+			XMLWriter writer = new XMLWriter(new OutputStreamWriter(new FileOutputStream(xmlPath), encoding),
+					format);
 			writer.write(doc);
 			writer.flush();
 			writer.close();
@@ -620,11 +632,13 @@ public class XMLUtils {
 	/**
 	 * 写入一个xml文件
 	 * 
-	 * @param rootMap 根元素 TAGNAME:String,元素名称;
+	 * @param rootMap
+	 *            根元素 TAGNAME:String,元素名称;
 	 *            NAMESPACES:Map<String,String>,多命名空间名值对,key为命名空间前缀,value为uri值;
 	 *            ATTRIBUTES:Map<String,String>,多属性名值对; TEXT:String,节点内容;
-	 * @param elements ID:Long,元素唯一标识; PARENT:Long,父节点标识;
-	 *            CHILDRENS:List<Long>,子节点标识集合; TAGNAME:String,元素名称;
+	 * @param elements
+	 *            ID:Long,元素唯一标识; PARENT:Long,父节点标识; CHILDRENS:List<Long>,子节点标识集合;
+	 *            TAGNAME:String,元素名称;
 	 *            NAMESPACES:Map<String,String>,多命名空间名值对,key为命名空间前缀,value为uri值;
 	 *            ATTRIBUTES:Map<String,String>,多属性名值对 TEXT:String,节点内容;
 	 */
@@ -666,7 +680,7 @@ public class XMLUtils {
 			writer.write(document);
 			writer.close();
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			e.printStackTrace();
 		}
 	}
 
@@ -697,7 +711,6 @@ public class XMLUtils {
 	 * 
 	 * @param type:namespace,attribute
 	 */
-	@SuppressWarnings("unchecked")
 	private static final void addAll(Element element, Object maps, String type) {
 		if (maps != null && maps instanceof Map) {
 			Map<String, String> map = (Map<String, String>) maps;
@@ -716,10 +729,11 @@ public class XMLUtils {
 	/**
 	 * 添加子节点,若是没有子节点,则从元素集合中删掉该元素
 	 * 
-	 * @param self 本节点
-	 * @param parent 父节点
+	 * @param self
+	 *            本节点
+	 * @param parent
+	 *            父节点
 	 */
-	@SuppressWarnings("unchecked")
 	public static void addChilds(Map<String, Object> self, Element parent,
 			List<Map<String, Object>> elements) {
 		Object childrens = self.get("CHILDRENS");
@@ -760,7 +774,7 @@ public class XMLUtils {
 			Document transformedDoc = result.getDocument();
 			return transformedDoc;
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			e.printStackTrace();
 		}
 		return null;
 	}

@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
-
 import com.alibaba.fastjson.JSON;
 import com.wy.common.Encoding;
 import com.wy.enums.MethodEnum;
@@ -23,7 +21,6 @@ import com.wy.utils.MapUtils;
 import com.wy.utils.StrUtils;
 
 public class HttpUtils {
-	private static final Logger logger = Logger.getLogger(HttpUtils.class);
 	// post默认请求方式
 	private static final String DEFAULT_CONTENTTYPE = "text/html;charset=utf8;application/x-www-form-urlencoded;";
 	// 默认字符编码
@@ -124,7 +121,7 @@ public class HttpUtils {
 				return JSON.parseObject(sb.toString());
 			}
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			e.printStackTrace();
 		}
 		return null;
 	}

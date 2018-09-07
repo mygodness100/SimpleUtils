@@ -14,7 +14,6 @@ import com.wy.utils.StrUtils;
 
 import sun.misc.BASE64Encoder;
 
-@SuppressWarnings("restriction")
 public class CryptoUtils {
 	/**
 	 * 按照UUID算法生成一个字符串

@@ -11,12 +11,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanUtils;
-
 import com.wy.utils.ListUtils;
 import com.wy.utils.StrUtils;
 
-import common.Logger;
 import jxl.Sheet;
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
@@ -29,7 +26,6 @@ import jxl.write.WritableWorkbook;
  * @author 万杨
  */
 public class ExcelJxl {
-	private static final Logger logger = Logger.getLogger(ExcelJxl.class);
 
 	/**
 	 * 读取指定路径的xsl文件,可以是远程文件
@@ -136,7 +132,7 @@ public class ExcelJxl {
 				List<List<List<String>>> page = new ArrayList<>();
 				for(int i=0;i<t.size();i++) {
 					for(Field field : fields) {
-						row.add(BeanUtils.getProperty(t, field.getName()));					
+						row.add(field.get(t).toString());					
 					}
 					col.add(row);
 				}
@@ -145,7 +141,6 @@ public class ExcelJxl {
 				return true;
 			}
 		} catch (Exception e) {
-			logger.info(e.getMessage());
 			e.printStackTrace();
 		}
 		return false;

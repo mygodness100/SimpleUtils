@@ -32,8 +32,6 @@ import java.util.Set;
 
 import javax.imageio.ImageIO;
 
-import org.apache.log4j.Logger;
-
 import com.wy.utils.StrUtils;
 
 /**
@@ -42,7 +40,6 @@ import com.wy.utils.StrUtils;
  * @author 万杨
  */
 public final class FileUtils {
-	private static final Logger logger = Logger.getLogger(FileUtils.class);
 
 	/**
 	 * 文件后缀类型归类
@@ -88,7 +85,6 @@ public final class FileUtils {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.info(e.getMessage());
 		}
 		return false;
 	}
@@ -124,8 +120,10 @@ public final class FileUtils {
 	/**
 	 * 将一个文件移动到另外一个地方,不删除源文件,删除已经存在于目标地址的文件
 	 * 
-	 * @param from 源文件,需要进行移动的文件
-	 * @param to 目标地址
+	 * @param from
+	 *            源文件,需要进行移动的文件
+	 * @param to
+	 *            目标地址
 	 */
 	public static final void moveFileDT(File from, File to) {
 		moveFile(from, to, true, true);
@@ -134,8 +132,10 @@ public final class FileUtils {
 	/**
 	 * 将一个文件移动到另外一个地方,删除或移动源文件,删除已经存在于目标地址的文件
 	 * 
-	 * @param from 源文件,需要进行移动的文件
-	 * @param to 目标地址
+	 * @param from
+	 *            源文件,需要进行移动的文件
+	 * @param to
+	 *            目标地址
 	 */
 	public static final void moveFileDFDT(File from, File to) {
 		moveFile(from, to, true, false);
@@ -144,10 +144,14 @@ public final class FileUtils {
 	/**
 	 * 移动文件从一个地方到另一个地方,若目标文件已经存在,判断是否删除之后再移动
 	 * 
-	 * @param from 源文件,需要进行移动的文件
-	 * @param to 目标地址
-	 * @param deleteTo 若目标文件存在,是否删除,true删除
-	 * @param isCopy true复制,false剪切
+	 * @param from
+	 *            源文件,需要进行移动的文件
+	 * @param to
+	 *            目标地址
+	 * @param deleteTo
+	 *            若目标文件存在,是否删除,true删除
+	 * @param isCopy
+	 *            true复制,false剪切
 	 */
 	public static final void moveFile(File from, File to, boolean deleteTo, boolean isCopy) {
 		if (to.exists()) {
@@ -172,9 +176,12 @@ public final class FileUtils {
 	/**
 	 * 直接用流移动文件
 	 * 
-	 * @param from 源文件
-	 * @param to 目标地址
-	 * @param isCopy true复制,false剪切
+	 * @param from
+	 *            源文件
+	 * @param to
+	 *            目标地址
+	 * @param isCopy
+	 *            true复制,false剪切
 	 */
 	public static final void moveFile(File from, File to, boolean isCopy) {
 		InputStream is = null;
@@ -236,7 +243,8 @@ public final class FileUtils {
 		graphics2D.setBackground(Color.WHITE);
 		graphics2D.setPaint(Color.WHITE);
 		graphics2D.fillRect(0, 0, thumbWidth, thumbHeight);
-		graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+				RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 		graphics2D.drawImage(image, 0, 0, thumbWidth, thumbHeight, null);
 		ImageIO.write(thumbImage, "JPG", new File(thumbnailFile));
 	}
@@ -255,7 +263,8 @@ public final class FileUtils {
 				for (File childFile : listFiles) {
 					if (childFile.isFile()) {
 						String fileName = childFile.getParent() + File.separator
-								+ childFile.getName().replace("[YYDM-11FANS][Gundam_Seed-Destiny-HD-ReMaster]", "")
+								+ childFile.getName()
+										.replace("[YYDM-11FANS][Gundam_Seed-Destiny-HD-ReMaster]", "")
 										.replace("[BDRIP][X264-10bit_AAC][720P]", "");
 						childFile.renameTo(new File(fileName));
 					}
@@ -287,7 +296,7 @@ public final class FileUtils {
 			br.close();
 			bw.close();
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			e.printStackTrace();
 		} finally {
 			if (br != null) {
 				try {
@@ -323,7 +332,7 @@ public final class FileUtils {
 			br.close();
 			bw.close();
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			e.printStackTrace();
 		} finally {
 			close(bw, br);
 		}
@@ -338,7 +347,7 @@ public final class FileUtils {
 				throw new Exception("文件路径为空");
 			}
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			e.printStackTrace();
 		}
 		return mkdirs(new File(path));
 	}
@@ -357,7 +366,7 @@ public final class FileUtils {
 				return file.mkdirs();
 			}
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -376,7 +385,7 @@ public final class FileUtils {
 			bos = new BufferedOutputStream(new FileOutputStream(file, true));
 			bos.write(bytes);
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			e.printStackTrace();
 		} finally {
 			close(bos);
 		}
@@ -396,7 +405,7 @@ public final class FileUtils {
 					bos.write(bs, 0, len);
 				}
 			} catch (Exception e) {
-				logger.info(e.getMessage());
+				e.printStackTrace();
 			} finally {
 				close(bos);
 			}
@@ -427,7 +436,6 @@ public final class FileUtils {
 			}
 			return sb.toString();
 		} catch (Exception e) {
-			logger.info(e.getMessage());
 			e.printStackTrace();
 		}
 		return null;
@@ -467,7 +475,7 @@ public final class FileUtils {
 			}
 			return sb.toString();
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			e.printStackTrace();
 		} finally {
 			close(br);
 		}
@@ -504,7 +512,8 @@ public final class FileUtils {
 		BufferedReader br = null;
 		OutputStreamWriter osr = null;
 		try {
-			File src = new File("D:\\Java\\responsity\\javas\\Utils\\src\\com\\wy\\utils\\kukudas1530372519755.txt");
+			File src = new File(
+					"D:\\Java\\responsity\\javas\\Utils\\src\\com\\wy\\utils\\kukudas1530372519755.txt");
 			InputStreamReader isr = new InputStreamReader(new FileInputStream(src));
 			br = new BufferedReader(isr);
 			String line = null;
@@ -522,24 +531,24 @@ public final class FileUtils {
 			close(br, osr);
 		}
 	}
-	
+
 	/**
 	 * 递归删除文件夹以及文件夹中内容
 	 */
 	public static void deleteFile(File file) {
-		if(!file.exists()) {
+		if (!file.exists()) {
 			return;
 		}
-		if(file.isDirectory()) {
+		if (file.isDirectory()) {
 			File[] listFiles = file.listFiles();
-			if(listFiles.length == 0) {
+			if (listFiles.length == 0) {
 				file.delete();
 				return;
 			}
 			for (File fi : listFiles) {
 				deleteFile(fi);
 			}
-		}else {
+		} else {
 			file.delete();
 		}
 	}
@@ -549,7 +558,7 @@ public final class FileUtils {
 	 */
 	public static void deleteFile(String filePath, String fileType) {
 		File file = new File(filePath);
-		if(file.exists() && file.isDirectory()) {
+		if (file.exists() && file.isDirectory()) {
 			File[] listFiles = file.listFiles();
 			for (File fi : listFiles) {
 				if (fi.isDirectory()) {
@@ -573,7 +582,7 @@ public final class FileUtils {
 					try {
 						closeable.close();
 					} catch (Exception e) {
-						logger.error(e.getMessage(), e.getCause());
+						e.printStackTrace();
 					}
 				}
 			}

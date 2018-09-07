@@ -6,8 +6,6 @@ import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import org.apache.log4j.Logger;
-
 import com.wy.enums.MethodEnum;
 import com.wy.io.FileUtils;
 
@@ -17,7 +15,6 @@ import com.wy.io.FileUtils;
  * @author wanyang
  */
 public class HttpDownloads {
-	private static final Logger logger = Logger.getLogger(HttpDownloads.class);
 	// private static ExecutorService EXE = null;
 	// 默认最多5个线程
 	public static final int DEFAULT_THREADCOUNT = 5;
@@ -52,7 +49,6 @@ public class HttpDownloads {
 			if (code == 200) {
 				// 数据的长度
 				int sum = conn.getContentLength();
-				logger.info("文件大小:" + sum);
 				// 有了文件的长度,直接创建一个相同大小的文件
 				RandomAccessFile file = new RandomAccessFile(desFile, "rw");
 				file.setLength(sum);
@@ -66,12 +62,11 @@ public class HttpDownloads {
 					new DownloadThread(url, desFile, start, end, method.toString()).start();
 				}
 			}else {
-				logger.info(code);
+				System.out.println(code);
 			}
 			conn.disconnect();
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.info(e.getMessage());
 		}
 	}
 }

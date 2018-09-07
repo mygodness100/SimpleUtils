@@ -6,12 +6,9 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import org.apache.log4j.Logger;
-
 import com.wy.common.Encoding;
 
 public class MyServer {
-	private static final Logger logger = Logger.getLogger(MyServer.class);
 	private ServerSocket server;
 
 	public MyServer(){
@@ -29,7 +26,7 @@ public class MyServer {
 			PrintWriter pw = new PrintWriter(accept.getOutputStream(),true);
 			pw.println("收到登录消息了");
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			e.getMessage();
 		}
 	}
 }

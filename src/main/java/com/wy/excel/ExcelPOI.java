@@ -11,8 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -37,8 +35,6 @@ import com.wy.utils.StrUtils;
  * @author wanyang
  */
 public class ExcelPOI {
-	private static final Logger logger = Logger.getLogger(ExcelPOI.class);
-
 	/**
 	 * 根据excel文件的结尾来自动判断生成那种版本的excel,若传的文件没有指定类型,自动归结为低版本excel
 	 * 
@@ -78,7 +74,7 @@ public class ExcelPOI {
 							subjects.add(field.getName());
 						}
 						field.isAccessible();
-						row.add(BeanUtils.getProperty(t, field.getName()));
+						row.add(field.get(t).toString());
 					}
 					// 判断是否是一个map映射
 				} else if (clazz == Map.class) {
@@ -117,7 +113,6 @@ public class ExcelPOI {
 	 */
 	public static boolean createExcelAuto(List<List<List<String>>> excel, String path) {
 		if (ClassUtils.isEmpty(path)) {
-			logger.info("文件路径为空");
 			return false;
 		}
 		Workbook wb = null;
@@ -129,7 +124,6 @@ public class ExcelPOI {
 			path += ".xls";
 			wb = new HSSFWorkbook();
 		} else {
-			logger.info("文件路径错误");
 			return false;
 		}
 		return writeExcel(wb, excel, path);
@@ -224,7 +218,7 @@ public class ExcelPOI {
 			wb.close();
 			return true;
 		} catch (Exception e) {
-			logger.info(e.getMessage(), e);
+			e.printStackTrace();
 			return false;
 		} finally {
 			if (wb != null) {
@@ -234,7 +228,7 @@ public class ExcelPOI {
 						fos.close();
 					}
 				} catch (Exception e2) {
-					logger.info(e2.getMessage(), e2);
+					e2.printStackTrace();
 					return false;
 				}
 			}
@@ -258,7 +252,6 @@ public class ExcelPOI {
 		// TODO
 		File file = new File(path);
 		if (!file.exists()) {
-			logger.error("指定文件不存在");
 			throw new ResultException("文件不存在");
 		}
 		InputStream is = null;
