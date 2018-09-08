@@ -11,3 +11,7 @@
 > https://www.sojson.com/blog/250.html 
 
 > https://www.cnblogs.com/binarylei/p/8628245.html
+
+* Gpg4win生成密钥
+
+> https://www.gpg4win.org/download.html
