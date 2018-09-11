@@ -260,18 +260,19 @@
 							</execution>
 						</executions>
 					</plugin>
-					<!-- <plugin> -->
-					<!-- <groupId>org.sonatype.plugins</groupId> -->
-					<!-- <artifactId>nexus-staging-maven-plugin</artifactId> -->
-					<!-- <version>1.6.7</version> -->
-					<!-- <extensions>true</extensions> -->
-					<!-- <configuration> -->
-					<!-- <serverId>nexus-release</serverId> -->
-					<!-- <nexusUrl>https://oss.sonatype.org/</nexusUrl> -->
-					<!-- true部署后自动发布release版本 -->
-					<!-- <autoReleaseAfterClose>true</autoReleaseAfterClose> -->
-					<!-- </configuration> -->
-					<!-- </plugin> -->
+					<!-- 第一次发布成功后可使用改插件,自动构建,不需要到网站上去close之后再发布release -->
+					<plugin>
+						<groupId>org.sonatype.plugins</groupId>
+						<artifactId>nexus-staging-maven-plugin</artifactId>
+						<version>1.6.7</version>
+						<extensions>true</extensions>
+						<configuration>
+							<serverId>nexus-release</serverId>
+							<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+							<!-- true部署后自动发布release版本 -->
+							<autoReleaseAfterClose>true</autoReleaseAfterClose>
+						</configuration>
+					</plugin>
 				</plugins>
 			</build>
 			<distributionManagement>
@@ -286,16 +287,4 @@
 			</distributionManagement>
 		</profile>
 	</profiles>
-
-	<distributionManagement>
-		<snapshotRepository>
-			<id>nexus-snapshots</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-		</snapshotRepository>
-		<repository>
-			<id>nexus-release</id>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>
-	</distributionManagement>
-
 </project>
