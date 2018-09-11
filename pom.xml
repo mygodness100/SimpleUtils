@@ -6,7 +6,11 @@
 	<artifactId>SimpleUtils</artifactId>
 	<version>1.0.0</version>
 	<packaging>pom</packaging>
+	<!-- 必须写,否则close报错invalid pom -->
 	<url>https://github.com/mygodness100/SimpleUtils</url>
+
+	<name>SimpleUtils</name>
+	<description>SimpleUtils</description>
 
 	<licenses>
 		<license>
@@ -30,9 +34,6 @@
 			<url>https://github.com/mygodness100/SimpleUtils.git</url>
 		</developer>
 	</developers>
-
-	<name>SimpleUtils</name>
-	<description>SimpleUtils</description>
 
 	<properties>
 		<!-- 工程参数 -->
@@ -245,20 +246,20 @@
 							<additionalparam>-Xdoclint:none</additionalparam>
 						</configuration>
 					</plugin>
-					<!-- GPG加密 -->
-					<!-- <plugin> -->
-					<!-- <groupId>org.apache.maven.plugins</groupId> -->
-					<!-- <artifactId>maven-gpg-plugin</artifactId> -->
-					<!-- <version>1.6</version> -->
-					<!-- <executions> -->
-					<!-- <execution> -->
-					<!-- <phase>verify</phase> -->
-					<!-- <goals> -->
-					<!-- <goal>sign</goal> -->
-					<!-- </goals> -->
-					<!-- </execution> -->
-					<!-- </executions> -->
-					<!-- </plugin> -->
+					<!-- GPG加密,不管怎么样,必须加密,若没有,报错 -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
 					<!-- <plugin> -->
 					<!-- <groupId>org.sonatype.plugins</groupId> -->
 					<!-- <artifactId>nexus-staging-maven-plugin</artifactId> -->
@@ -285,7 +286,6 @@
 			</distributionManagement>
 		</profile>
 	</profiles>
-
 
 	<distributionManagement>
 		<snapshotRepository>
