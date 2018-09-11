@@ -12,9 +12,9 @@
 	</licenses>
 
 	<scm>
-		<url>git@github.com:mygodness100/SimpleUtils.git</url>
-		<connection>scm:git:git@github.com:mygodness100/SimpleUtils.git</connection>
-		<developerConnection>scm:git:git@github.com:mygodness100/SimpleUtils.git</developerConnection>
+		<url>https://github.com/mygodness100/SimpleUtils</url>
+		<connection>scm:git:https://github.com/mygodness100/SimpleUtils.git</connection>
+		<developerConnection>scm:git:https://github.com/mygodness100/SimpleUtils.git</developerConnection>
 		<tag>SimpleUtils-1.0.0</tag>
 	</scm>
 
@@ -22,7 +22,7 @@
 		<developer>
 			<name>Sunshine</name>
 			<email>mygodness30@sina.com</email>
-			<url>https://github.com/mygodness100/SimpleUtils</url>
+			<url>https://github.com/mygodness100/SimpleUtils.git</url>
 		</developer>
 	</developers>
 
