@@ -18,8 +18,8 @@
 
 	<scm>
 		<url>https://github.com/mygodness100/SimpleUtils</url>
-		<connection>scm:git:https://github.com/mygodness100/SimpleUtils.git</connection>
-		<developerConnection>scm:git:https://github.com/mygodness100/SimpleUtils.git</developerConnection>
+		<connection>https://github.com/mygodness100/SimpleUtils.git</connection>
+		<developerConnection>https://github.com/mygodness100/SimpleUtils.git</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
 
