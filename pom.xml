@@ -256,18 +256,18 @@
 <!-- 							</execution> -->
 <!-- 						</executions> -->
 <!-- 					</plugin> -->
-					<plugin>
-						<groupId>org.sonatype.plugins</groupId>
-						<artifactId>nexus-staging-maven-plugin</artifactId>
-						<version>1.6.7</version>
-						<extensions>true</extensions>
-						<configuration>
-							<serverId>nexus-release</serverId>
-							<nexusUrl>https://oss.sonatype.org/</nexusUrl>
-							<!-- true部署后自动发布release版本 -->
-							<autoReleaseAfterClose>true</autoReleaseAfterClose>
-						</configuration>
-					</plugin>
+<!-- 					<plugin> -->
+<!-- 						<groupId>org.sonatype.plugins</groupId> -->
+<!-- 						<artifactId>nexus-staging-maven-plugin</artifactId> -->
+<!-- 						<version>1.6.7</version> -->
+<!-- 						<extensions>true</extensions> -->
+<!-- 						<configuration> -->
+<!-- 							<serverId>nexus-release</serverId> -->
+<!-- 							<nexusUrl>https://oss.sonatype.org/</nexusUrl> -->
+<!-- 							true部署后自动发布release版本 -->
+<!-- 							<autoReleaseAfterClose>true</autoReleaseAfterClose> -->
+<!-- 						</configuration> -->
+<!-- 					</plugin> -->
 				</plugins>
 			</build>
 			<distributionManagement>
