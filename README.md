@@ -6,6 +6,10 @@
 
 > https://issues.sonatype.org/browse/OSSRH-42504?filter=-2
 
+* 浏览自己发布的jar包
+
+> https://oss.sonatype.org
+
 * 教程
 
 > https://www.sojson.com/blog/250.html
