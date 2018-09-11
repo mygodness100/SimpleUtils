@@ -29,7 +29,7 @@
 	<groupId>com.github.mygodness100</groupId>
 	<artifactId>SimpleUtils</artifactId>
 	<version>1.0.0</version>
-	<packaging>jar</packaging>
+	<packaging>pom</packaging>
 
 	<name>SimpleUtils</name>
 	<description>SimpleUtils</description>
