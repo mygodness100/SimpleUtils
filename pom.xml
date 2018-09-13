@@ -260,18 +260,18 @@
 						</executions>
 					</plugin>
 					<!-- auto deploy release version -->
-<!-- 					<plugin> -->
-<!-- 						<groupId>org.sonatype.plugins</groupId> -->
-<!-- 						<artifactId>nexus-staging-maven-plugin</artifactId> -->
-<!-- 						<version>1.6.7</version> -->
-<!-- 						<extensions>true</extensions> -->
-<!-- 						<configuration> -->
-<!-- 							<serverId>nexus-release</serverId> -->
-<!-- 							<nexusUrl>https://oss.sonatype.org/</nexusUrl> -->
-<!-- 							true:auto,false:not auto deploy release -->
-<!-- 							<autoReleaseAfterClose>true</autoReleaseAfterClose> -->
-<!-- 						</configuration> -->
-<!-- 					</plugin> -->
+					<!-- <plugin> -->
+					<!-- <groupId>org.sonatype.plugins</groupId> -->
+					<!-- <artifactId>nexus-staging-maven-plugin</artifactId> -->
+					<!-- <version>1.6.7</version> -->
+					<!-- <extensions>true</extensions> -->
+					<!-- <configuration> -->
+					<!-- <serverId>nexus-release</serverId> -->
+					<!-- <nexusUrl>https://oss.sonatype.org/</nexusUrl> -->
+					<!-- true:auto,false:not auto deploy release -->
+					<!-- <autoReleaseAfterClose>true</autoReleaseAfterClose> -->
+					<!-- </configuration> -->
+					<!-- </plugin> -->
 				</plugins>
 			</build>
 			<distributionManagement>
@@ -286,6 +286,18 @@
 			</distributionManagement>
 		</profile>
 	</profiles>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>nexus-snapshots</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+		</snapshotRepository>
+		<repository>
+			<id>nexus-release</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
+
 	<modules>
 		<module>SimUtils</module>
 	</modules>
