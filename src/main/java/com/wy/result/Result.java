@@ -1,7 +1,12 @@
 package com.wy.result;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import com.wy.utils.MapUtils;
 import com.wy.utils.StrUtils;
 
 public class Result implements Serializable {
@@ -97,5 +102,42 @@ public class Result implements Serializable {
 		res.code = code;
 		res.data = t;
 		return res;
+	}
+
+	/**
+	 * 将从数据库自定义sql语句取出的结果集的key转换为驼峰形式
+	 * 
+	 * @param data 下划线形式的结果集
+	 * @return 驼峰形式的结果集
+	 */
+	public static Map<String, Object> snake2Hump(Map<String, Object> data) {
+		if (MapUtils.isBlank(data)) {
+			return null;
+		}
+		Map<String, Object> result = new HashMap<>();
+		for (Map.Entry<String, Object> entry : data.entrySet()) {
+			result.put(StrUtils.snake2Hump(entry.getKey()), entry.getValue());
+		}
+		data = null;
+		return result;
+	}
+
+	/**
+	 * 将从数据库自定义sql语句取出的结果集的key转换为驼峰形式
+	 * 
+	 * @param datas 下划线形式的结果集
+	 * @return 驼峰形式的结果集
+	 */
+	public static List<Map<String, Object>> snake2Hump(List<Map<String, Object>> datas) {
+		if (datas == null || datas.isEmpty()) {
+			return null;
+		}
+		List<Map<String, Object>> result = new ArrayList<>();
+		for (Map<String, Object> data : datas) {
+			Map<String, Object> res = snake2Hump(data);
+			result.add(res);
+		}
+		datas = null;
+		return result;
 	}
 }

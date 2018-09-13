@@ -5,7 +5,7 @@
 	<groupId>com.github.mygodness100</groupId>
 	<artifactId>SimpleUtils</artifactId>
 	<version>1.0.0</version>
-	<packaging>pom</packaging>
+	<packaging>jar</packaging>
 	<!-- 必须写,否则close报错invalid pom -->
 	<url>https://github.com/mygodness100/SimpleUtils</url>
 
