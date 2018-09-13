@@ -1,5 +1,0 @@
-备份数据,需要在cms环境中执行
-Mysqldump -uroot -proot testdatabase >test.sql
--u+用户用,-p+密码,数据库名,生成的文件名,后缀为.sql
-恢复数据
-mysql  -uroot -proot testdatabase < test.sql
