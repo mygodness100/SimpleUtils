@@ -260,18 +260,18 @@
 						</executions>
 					</plugin>
 					<!-- auto deploy release version -->
-					<plugin>
-						<groupId>org.sonatype.plugins</groupId>
-						<artifactId>nexus-staging-maven-plugin</artifactId>
-						<version>1.6.7</version>
-						<extensions>true</extensions>
-						<configuration>
-							<serverId>nexus-release</serverId>
-							<nexusUrl>https://oss.sonatype.org/</nexusUrl>
-							<!-- true:auto,false:not auto deploy release -->
-							<autoReleaseAfterClose>true</autoReleaseAfterClose>
-						</configuration>
-					</plugin>
+<!-- 					<plugin> -->
+<!-- 						<groupId>org.sonatype.plugins</groupId> -->
+<!-- 						<artifactId>nexus-staging-maven-plugin</artifactId> -->
+<!-- 						<version>1.6.7</version> -->
+<!-- 						<extensions>true</extensions> -->
+<!-- 						<configuration> -->
+<!-- 							<serverId>nexus-release</serverId> -->
+<!-- 							<nexusUrl>https://oss.sonatype.org/</nexusUrl> -->
+<!-- 							true:auto,false:not auto deploy release -->
+<!-- 							<autoReleaseAfterClose>true</autoReleaseAfterClose> -->
+<!-- 						</configuration> -->
+<!-- 					</plugin> -->
 				</plugins>
 			</build>
 			<distributionManagement>
