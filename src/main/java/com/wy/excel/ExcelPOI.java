@@ -55,7 +55,7 @@ public class ExcelPOI {
 	 */
 	public static <T> boolean writeExcel(List<T> list, String path, boolean subject) {
 		try {
-			if (StrUtils.isBlank(path) || ListUtils.isEmpty(list)) {
+			if (StrUtils.isBlank(path) || ListUtils.isBlank(list)) {
 				return false;
 			}
 			List<String> row = new ArrayList<>();

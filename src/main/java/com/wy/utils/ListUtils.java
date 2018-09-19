@@ -6,19 +6,19 @@ import java.util.List;
 
 public final class ListUtils {
 
-	public static <T> boolean isEmpty(Collection<T> list) {
+	public static <T> boolean isBlank(Collection<T> list) {
 		return list == null || list.isEmpty();
 	}
 
-	public static <T> boolean isNotEmpty(Collection<T> list) {
-		return !isEmpty(list);
+	public static <T> boolean isNotBlank(Collection<T> list) {
+		return !isBlank(list);
 	}
 
 	/**
 	 * 将Integer的list集合转换成int集合
 	 */
 	public static int[] toIntArr(List<Integer> list) {
-		if (isNotEmpty(list)) {
+		if (isNotBlank(list)) {
 			if (System.getProperty("java.version").contains("1.8.")) {
 				return Arrays.stream(list.toArray(new Integer[list.size()])).mapToInt(Integer::valueOf).toArray();
 			} else {
@@ -36,7 +36,7 @@ public final class ListUtils {
 	 * 将Integer的list集合转换成int集合
 	 */
 	public static long[] toLongArr(List<Long> list) {
-		if (isNotEmpty(list)) {
+		if (isNotBlank(list)) {
 			if (System.getProperty("java.version").contains("1.8.")) {
 				return Arrays.stream(list.toArray(new Long[list.size()])).mapToLong(Long::valueOf).toArray();
 			} else {
@@ -54,7 +54,7 @@ public final class ListUtils {
 	 * 将Integer的list集合转换成int集合
 	 */
 	public static double[] toDoubleArr(List<Double> list) {
-		if (isNotEmpty(list)) {
+		if (isNotBlank(list)) {
 			if (System.getProperty("java.version").contains("1.8.")) {
 				return Arrays.stream(list.toArray(new Double[list.size()])).mapToDouble(Double::valueOf).toArray();
 			} else {
@@ -72,7 +72,7 @@ public final class ListUtils {
 	 * 将boolean的对象类转换为boolean基础数据集合
 	 */
 	public static boolean[] toBooleanArr(List<Boolean> list) {
-		if (isNotEmpty(list)) {
+		if (isNotBlank(list)) {
 			boolean[] arr = new boolean[list.size()];
 			for (int i = 0; i < list.size(); i++) {
 				arr[i] = list.get(i);

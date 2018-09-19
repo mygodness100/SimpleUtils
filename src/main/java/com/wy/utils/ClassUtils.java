@@ -31,7 +31,7 @@ public class ClassUtils {
 			return MapUtils.isBlank((Map<K, V>) t);
 		}
 		if (ArrayList.class == clazz || HashSet.class == clazz || LinkedList.class == clazz) {
-			return ListUtils.isEmpty((Collection) t);
+			return ListUtils.isBlank((Collection) t);
 		}
 		return false;
 	}

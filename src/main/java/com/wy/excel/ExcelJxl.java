@@ -120,7 +120,7 @@ public class ExcelJxl {
 	 * @param path		数据存放地址
 	 */
 	public static <T> boolean writeExcel(List<T> t,String path) {
-		if(StrUtils.isBlank(path) || ListUtils.isEmpty(t)) {
+		if(StrUtils.isBlank(path) || ListUtils.isBlank(t)) {
 			return false;
 		}
 		try {

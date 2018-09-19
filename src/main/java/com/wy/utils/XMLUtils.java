@@ -200,7 +200,7 @@ public class XMLUtils {
 	private static final void treeWalk(Element element) {
 		elements.add(element);
 		attributes.addAll(element.attributes());
-		if (ListUtils.isNotEmpty(element.declaredNamespaces())) {
+		if (ListUtils.isNotBlank(element.declaredNamespaces())) {
 			namespaces.addAll(element.declaredNamespaces());
 		}
 		for (int i = 0, size = element.nodeCount(); i < size; i++) {
@@ -653,7 +653,7 @@ public class XMLUtils {
 			Object attributes = rootMap.get("ATTRIBUTES");
 			addAll(root, attributes, "attribute");
 			root.addText(String.valueOf(rootMap.get("TEXT")));
-			if (!ListUtils.isEmpty(elements)) {
+			if (!ListUtils.isBlank(elements)) {
 				for (Map<String, Object> map : elements) {
 					// 生成本节点
 					Element element = createElement(map);
