@@ -1,5 +1,6 @@
 package com.wy.utils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -20,7 +21,8 @@ public final class ListUtils {
 	public static int[] toIntArr(List<Integer> list) {
 		if (isNotBlank(list)) {
 			if (System.getProperty("java.version").contains("1.8.")) {
-				return Arrays.stream(list.toArray(new Integer[list.size()])).mapToInt(Integer::valueOf).toArray();
+				return Arrays.stream(list.toArray(new Integer[list.size()]))
+						.mapToInt(Integer::valueOf).toArray();
 			} else {
 				int[] arr = new int[list.size()];
 				for (int i = 0; i < list.size(); i++) {
@@ -38,7 +40,8 @@ public final class ListUtils {
 	public static long[] toLongArr(List<Long> list) {
 		if (isNotBlank(list)) {
 			if (System.getProperty("java.version").contains("1.8.")) {
-				return Arrays.stream(list.toArray(new Long[list.size()])).mapToLong(Long::valueOf).toArray();
+				return Arrays.stream(list.toArray(new Long[list.size()])).mapToLong(Long::valueOf)
+						.toArray();
 			} else {
 				long[] arr = new long[list.size()];
 				for (int i = 0; i < list.size(); i++) {
@@ -56,7 +59,8 @@ public final class ListUtils {
 	public static double[] toDoubleArr(List<Double> list) {
 		if (isNotBlank(list)) {
 			if (System.getProperty("java.version").contains("1.8.")) {
-				return Arrays.stream(list.toArray(new Double[list.size()])).mapToDouble(Double::valueOf).toArray();
+				return Arrays.stream(list.toArray(new Double[list.size()]))
+						.mapToDouble(Double::valueOf).toArray();
 			} else {
 				double[] arr = new double[list.size()];
 				for (int i = 0; i < list.size(); i++) {
@@ -81,17 +85,38 @@ public final class ListUtils {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * 获得指定元素在数组中第一次出现的位置
 	 */
-	public static int getIndex(String[] src,String des) {
+	public static int getIndex(String[] src, String des) {
 		int length = src.length;
-		for(int i=0;i<length;i++) {
-			if(des.equals(src[i])) {
+		for (int i = 0; i < length; i++) {
+			if (des.equals(src[i])) {
 				return i;
 			}
 		}
 		return -1;
+	}
+
+	public static <T> ListBuilder<T> getBuilder(T val) {
+		return new ListBuilder<T>(val);
+	}
+
+	public static class ListBuilder<T> {
+		private List<T> list = new ArrayList<>();
+
+		public ListBuilder(T val) {
+			list.add(val);
+		}
+
+		public ListBuilder<T> add(T val) {
+			list.add(val);
+			return this;
+		}
+
+		public List<T> build() {
+			return list;
+		}
 	}
 }
