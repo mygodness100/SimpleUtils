@@ -2,11 +2,8 @@ package com.wy.utils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
 
 import com.wy.enums.DateEnum;
 
@@ -17,13 +14,8 @@ import com.wy.enums.DateEnum;
  */
 public final class DateUtils {
 	public static final long DAY = 1000 * 60 * 60 * 24;
-	public static final String WEEK = "EEE";
-	public static final String DATE = "yyyy-MM-dd";
-	public static final String DATEHH = "HH:mm:ss";
-	public static final String DATETIME = "yyyy-MM-dd HH:mm:ss";
-	public static final String DATETIMEE = "YYYY-MM-dd EEE HH:mm:ss";
-	public static final String DATETIMET = "yyyy-MM-dd HH:mm:ss zzz";
-	public static final String DATETIMEET = "yyyy-MM-dd EEE HH:mm:ss zzz";
+
+	public static final String DEFAULT_PATTERN = DateEnum.DATETIME.format;
 
 	public static SimpleDateFormat SDF = null;
 
@@ -34,56 +26,53 @@ public final class DateUtils {
 	 * 返回指定时间是周几
 	 */
 	public static String getWeek(Date date) {
-		return format(date, WEEK);
-	}
-
-	/**
-	 * 直接获取当天的日期,格式为yyyy-MM-dd不包括时间,jdk1.8
-	 */
-	public static String today() {
-		return LocalDate.now().toString();
+		return format(date, DateEnum.WEEK);
 	}
 
 	/**
 	 * 返回当前时间年月日字符串
 	 */
 	public static String formatDate() {
-		return format(new Date(), DATE);
+		return format(new Date(), DateEnum.DATE);
 	}
 
 	/**
 	 * 返回指定时间年月日字符串
 	 */
 	public static String formatDate(Date date) {
-		return format(date, DATE);
+		return format(date, DateEnum.DATE);
 	}
 
 	/**
 	 * 返回当前时间的时分秒
 	 */
 	public static String formatTime() {
-		return format(new Date(), DATEHH);
+		return format(new Date(), DateEnum.TIME);
 	}
 
 	/**
 	 * 返回指定时间时分秒字符串
 	 */
 	public static String formatTime(Date date) {
-		return format(date, DATEHH);
+		return format(date, DateEnum.TIME);
 	}
 
 	/**
 	 * 返回当前时间的年月日时分秒字符串
 	 */
 	public static String formatDateTime() {
-		return format(new Date(), DATETIME);
+		return format(new Date(), DEFAULT_PATTERN);
 	}
 
 	/**
 	 * 返回指定时间转换为年月日时分秒字符串
 	 */
 	public static String formatDateTime(Date date) {
-		return format(date, DATETIME);
+		return format(date, DEFAULT_PATTERN);
+	}
+
+	public static String format(Date date, DateEnum pattern) {
+		return format(date, pattern.format);
 	}
 
 	/**
@@ -92,7 +81,7 @@ public final class DateUtils {
 	public static String format(Date date, String pattern) {
 		date = date == null ? new Date() : date;
 		if (StrUtils.isBlank(pattern)) {
-			pattern = DATETIME;
+			pattern = DEFAULT_PATTERN;
 		}
 		SDF = new SimpleDateFormat(pattern);
 		return SDF.format(date);
@@ -101,42 +90,24 @@ public final class DateUtils {
 	/**
 	 * 将时间字符串转换为年月日或年月日时分秒的date
 	 */
-	public static Date parse(DateEnum type, String str) {
-		return parse(type.toString(), str);
+	public static Date parse(String date, DateEnum type) {
+		return parse(date, type.format);
 	}
 
 	/**
 	 * 将时间字符串转换为相应的date
 	 */
-	public static Date parse(String pattern, String str) {
+	public static Date parse(String date, String pattern) {
 		try {
-			if (StrUtils.isBlank(pattern, str)) {
+			if (StrUtils.isBlank(pattern, date)) {
 				return null;
 			}
 			SDF = new SimpleDateFormat(pattern);
-			return SDF.parse(str);
+			return SDF.parse(date);
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
 		return null;
-	}
-
-	/**
-	 * 将标准GMT时间(格林威治时间)转成字符串格式化后的字符串转成Date,时差计算 未使用,需根据情况具体定制
-	 */
-	public static Date strDate2Date(String str) {
-		Date date = null;
-		try {
-			SDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-			date = SDF.parse(str);
-			// 转换为本地时区,根据时差计算,加上时差
-			TimeZone timeZone = TimeZone.getDefault();
-			long chinaMills = date.getTime() + timeZone.getRawOffset();
-			return new Date(chinaMills);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return date;
 	}
 
 	/**
@@ -147,13 +118,13 @@ public final class DateUtils {
 	}
 
 	public static long span2Date(String date1Str, String date2Str) {
-		Date date1 = DateUtils.parse(DateEnum.DATETIME, date1Str);
-		Date date2 = DateUtils.parse(DateEnum.DATETIME, date2Str);
+		Date date1 = DateUtils.parse(date1Str, DateEnum.DATETIME);
+		Date date2 = DateUtils.parse(date2Str, DateEnum.DATETIME);
 		return date2.getTime() - date1.getTime();
 	}
 
 	public static long span2Date(String date1Str, Date date2) {
-		Date date1 = DateUtils.parse(DateEnum.DATETIME, date1Str);
+		Date date1 = DateUtils.parse(date1Str, DateEnum.DATETIME);
 		return date2.getTime() - date1.getTime();
 	}
 
@@ -431,7 +402,7 @@ public final class DateUtils {
 		c.setTime(date);
 		int month = c.get(Calendar.MONTH);
 		int season = month / 3;
-		c.set(c.get(Calendar.YEAR), season * 3 , 1);
+		c.set(c.get(Calendar.YEAR), season * 3, 1);
 		return new Date(getDayBegin(c.getTime()));
 	}
 
@@ -450,11 +421,11 @@ public final class DateUtils {
 		c.setTime(date);
 		int month = c.get(Calendar.MONTH);
 		int season = month / 3;
-		c.set(Calendar.MONTH, (season+1) * 3-1);
+		c.set(Calendar.MONTH, (season + 1) * 3 - 1);
 		c.set(Calendar.DAY_OF_MONTH, c.getActualMaximum(Calendar.DAY_OF_MONTH));
 		return new Date(getDayEnd(c.getTime()));
 	}
-	
+
 	/**
 	 * 获得当前时间所在年的开始时间
 	 */

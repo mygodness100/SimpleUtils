@@ -5,16 +5,38 @@ package com.wy.enums;
  * @author wanyang
  */
 public enum DateEnum {
-	DATE("yyyy-MM-dd"),DATETIME("yyyy-MM-dd HH:mm:ss");
+	DATE("yyyy-MM-dd"),
+	DATE_SLASH("yyyy/MM/dd"),
+	DATE_NONE("yyyyMMdd"),
+
+	DATEWEEK("yyyy-MM-dd EEE"),
+	DATEWEEK_SLASH("yyyy/MM/dd EEE"),
+	DATEWEEK_NONE("yyyyMMdd EEE"),
+
+	DATETIME("yyyy-MM-dd HH:mm:ss"),
+	DATETIME_SLASH("yyyy/MM/dd HH:mm:ss"),
+	DATETIME_NONE("yyyyMMdd HH:mm:ss"),
 	
-	private String value;
+	DATETIMEWEEK("yyyy-MM-dd HH:mm:ss EEE"),
+	DATETIMEWEEK_SLASH("yyyy/MM/dd HH:mm:ss EEE"),
+	DATETIMEWEEK_NONE("yyyyMMdd HH:mm:ss EEE"),
+
+	DATEMILSEC("yyyy-MM-dd HH:mm:ss.SSS"),
+	DATEMILSEC_SLASH("yyyy/MM/dd HH:mm:ss.SSS"),
+	DATEMILSEC_NONE("yyyyMMddHHmmssSSS"),
 	
-	DateEnum(String value) {
-		this.value = value;
-	}
+	DATEMILSECWEEK("yyyy-MM-dd HH:mm:ss.SSS EEE"),
+	DATEMILSECWEEK_SLASH("yyyy/MM/dd HH:mm:ss.SSS EEE"),
+	DATEMILSECWEEK_NONE("yyyyMMdd HHmmssSSS EEE"),
+
+	TIME("HH:mm:ss"),
+	TIMEWEEK("HH:mm:ss EEE"),
 	
-	@Override
-	public String toString() {
-		return value;
+	WEEK("EEE");
+
+	public String format;
+
+	DateEnum(String format) {
+		this.format = format;
 	}
 }
