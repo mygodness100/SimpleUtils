@@ -188,7 +188,8 @@ public final class DateUtils {
 	/**
 	 * 设置一个指定年月日时分秒的时间
 	 */
-	public static Date dateCustom(int year, int month, int date, int hourOfDay, int minute, int second) {
+	public static Date dateCustom(int year, int month, int date, int hourOfDay, int minute,
+			int second) {
 		if (month < 1) {
 			return null;
 		}
@@ -354,6 +355,16 @@ public final class DateUtils {
 	}
 
 	/**
+	 * 获得某个月的最大天数
+	 * @return 天数
+	 */
+	public static int getMonthDays(Date date) {
+		Calendar c = Calendar.getInstance();
+		c.setTime(date);
+		return c.getActualMaximum(Calendar.DAY_OF_MONTH);
+	}
+
+	/**
 	 * 获得当前时间所在月的第一天
 	 */
 	public static Date getMonthBegin() {
@@ -383,7 +394,8 @@ public final class DateUtils {
 	public static Date getMonthEnd(Date date) {
 		Calendar c = Calendar.getInstance();
 		c.setTime(date);
-		c.set(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.getActualMaximum(Calendar.MONTH));
+		c.set(c.get(Calendar.YEAR), c.get(Calendar.MONTH),
+				c.getActualMaximum(Calendar.DAY_OF_MONTH));
 		return new Date(getDayEnd(c.getTime()));
 	}
 
@@ -490,5 +502,24 @@ public final class DateUtils {
 			return date2;
 		}
 		return date1;
+	}
+
+	/**
+	 * 比较2个日期是否为同一天
+	 * @param date1 时间1
+	 * @param date2 时间2
+	 * @return true是,false否
+	 */
+	public static boolean isSameDay(Date date1, Date date2) {
+		Calendar c1 = Calendar.getInstance();
+		c1.setTime(date1);
+		Calendar c2 = Calendar.getInstance();
+		c2.setTime(date2);
+		if (c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR)
+				&& c1.get(Calendar.MONTH) == c2.get(Calendar.MONTH)
+				&& c1.get(Calendar.DATE) == c2.get(Calendar.DATE)) {
+			return true;
+		}
+		return false;
 	}
 }
