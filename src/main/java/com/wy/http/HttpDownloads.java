@@ -6,7 +6,6 @@ import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import com.wy.enums.MethodEnum;
 import com.wy.io.FileUtils;
 
 /**
@@ -19,7 +18,7 @@ public class HttpDownloads {
 	// 默认最多5个线程
 	public static final int DEFAULT_THREADCOUNT = 5;
 	// 默认请求方式
-	public static final MethodEnum DEFAULT_METHOD = MethodEnum.GET;
+	public static final String DEFAULT_METHOD = "GET";
 
 	private HttpDownloads() {
 	}
@@ -31,7 +30,7 @@ public class HttpDownloads {
 	 * @param desFile:下载文件存放地址
 	 * @param threadCount:线程数
 	 */
-	public static void download(String downloadAddress, File desFile, int threadCount, MethodEnum method) {
+	public static void download(String downloadAddress, File desFile, int threadCount, String method) {
 		try {
 			if(!FileUtils.fileExists(desFile)) {
 				throw new Exception("下载失败,文件不存在或新建文件失败");

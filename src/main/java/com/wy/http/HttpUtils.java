@@ -15,7 +15,6 @@ import java.util.Set;
 
 import com.alibaba.fastjson.JSON;
 import com.wy.common.Encoding;
-import com.wy.enums.MethodEnum;
 import com.wy.utils.ClassUtils;
 import com.wy.utils.MapUtils;
 import com.wy.utils.StrUtils;
@@ -279,7 +278,7 @@ public class HttpUtils {
 				list.add(serializerParams(key, params.get(key)));
 			}
 		}
-		return String.join("&",list);
+		return String.join("&", list);
 	}
 
 	/**
@@ -324,7 +323,7 @@ public class HttpUtils {
 	public static void httpDownload(String downloadAddress, File desFile, int threadCount) {
 		httpDownload(downloadAddress, desFile, threadCount, HttpDownloads.DEFAULT_METHOD);
 	}
-	
+
 	/**
 	 * 文件下载
 	 * @param downloadAddress 文件下载地址
@@ -343,15 +342,14 @@ public class HttpUtils {
 	 * @param method 请求远程文件方式
 	 */
 	public static void httpDownload(String downloadAddress, File desFile, int threadCount,
-			MethodEnum method) {
+			String method) {
 		HttpDownloads.download(downloadAddress, desFile, threadCount, method);
 	}
-	
+
 	/**
-	 * 基于httpclient的get方法
-	 * FIXME
+	 * 基于httpclient的get方法 FIXME
 	 */
 	public static void httpClientGet() {
-		
+
 	}
 }
