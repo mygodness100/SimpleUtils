@@ -34,7 +34,7 @@ public class MailHelper {
 	public static Result sendMail(final Mail mail) {
 		String error = Mail.checkParam(mail);
 		if (StrUtils.isNotBlank(error)) {
-			return Result.resultErr(error);
+			return Result.error(error);
 		}
 		try {
 			Properties prop = getProp(mail.getMailHost(), mail.getMailPort(), mail.getIsSSL());
@@ -52,7 +52,7 @@ public class MailHelper {
 			// 邮件接收者地址,群发
 			Address[] tos = address(mail.getToAddress());
 			if (tos == null || tos.length == 0) {
-				return Result.resultErr("邮件发送地址为空或添加发送地址失败");
+				return Result.error("邮件发送地址为空或添加发送地址失败");
 			}
 			// 抄送
 			Address[] ccs = address(mail.getCc());
@@ -103,7 +103,7 @@ public class MailHelper {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return Result.resultOk();
+		return Result.ok();
 	}
 
 	/**
