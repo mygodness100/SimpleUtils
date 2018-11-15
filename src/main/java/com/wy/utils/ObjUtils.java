@@ -41,7 +41,7 @@ public final class ObjUtils {
 	}
 	
 	/**
-	 * 对象强转后是否为一个正数,
+	 * 对象强转后是否为一个整数
 	 * @param obj 对象
 	 * @return true是,false不是
 	 */
