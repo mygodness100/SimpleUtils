@@ -1,129 +1,151 @@
 package com.wy.db;
 
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
 
-import com.wy.enums.Java2SqlEnum;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+
+import com.wy.enums.DriverEnum;
 
 public class DBUtils {
 
-	private static final String DRIVERCLASS_MYSQL = "com.mysql.jdbc.Driver";
-	private static final String DRIVERCLASS_ORACLE = "oracle.jdbc.driver.OracleDriver";
-	private static final String DRIVERCLASS_SQLSERVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-
-	private static String driverClass;
-
-	private static final HashMap<String, List<String>> JAVA_TO_SQL = new HashMap<String, List<String>>() {
-		private static final long serialVersionUID = 1L;
-		{
-			put("Integer", Java2SqlEnum.INTEGER.getSqlType());
-			put("Long", Java2SqlEnum.LONG.getSqlType());
-			put("Double", Java2SqlEnum.DOUBLE.getSqlType());
-			put("Boolean", Java2SqlEnum.BOOLEAN.getSqlType());
-			put("String", Java2SqlEnum.STRING.getSqlType());
-			put("Date", Java2SqlEnum.DATE.getSqlType());
-			put("byte[]", Java2SqlEnum.BYTES.getSqlType());
-			put("BigDecimal", Java2SqlEnum.BIGDECIMAL.getSqlType());
-		}
-	};
-
 	private DBUtils() {
-
 	}
 
 	/**
-	 * 若存在配置文件,则使用配置文件的对应关系,若不存在,则直接使用默认对应关系
+	 * 根据数据库类型返回java类型,不精准,需自己校正
 	 */
-	static {
-		Properties props = new Properties();
-		try {
-			InputStream is = DBUtils.class.getClassLoader()
-					.getResourceAsStream("java2sql.properties");
-			if (!Objects.isNull(is)) {
-				props.load(is);
-				for (Map.Entry<Object, Object> entry : props.entrySet()) {
-					if (!Objects.isNull(entry.getValue())) {
-						if ("bytes".equals((String) entry.getKey())) {
-							JAVA_TO_SQL.put("byte[]",
-									Arrays.asList(((String) entry.getValue()).split(",")));
-						} else {
-							JAVA_TO_SQL.put((String) entry.getKey(),
-									Arrays.asList(((String) entry.getValue()).split(",")));
-						}
-					}
-				}
+	public static String sql2Java(String sqlType) {
+		for (String key : DBConfig.JAVA_TO_SQL.keySet()) {
+			if (DBConfig.JAVA_TO_SQL.get(key).contains(sqlType.toLowerCase())) {
+				return key;
 			}
+		}
+		return "Object";
+	}
+
+	public static Connection getConn(String url, String username, String password) {
+		return getConn(DriverEnum.getDriverClass(url), url, username, password);
+	}
+
+	/**
+	 * 获得数据库连接
+	 * @param driverClass 驱动
+	 * @param url 数据库地址
+	 * @param username 用户名
+	 * @param password 密码
+	 * @return 数据库连接
+	 */
+	public static Connection getConn(String driverClass, String url, String username,
+			String password) {
+		Connection conn = null;
+		try {
+			Class.forName(driverClass);
+			conn = DriverManager.getConnection(url, username, password);
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+		}
+		return conn;
+	}
+
+	public static List<DBTable> getDBInfo(String url, String username, String password) {
+		return getTableInfo(DriverEnum.getDriverClass(url), url, username, password);
+	}
+
+	/**
+	 * 从数据库中获得所有的表以及表中的字段
+	 * @param driverClass 驱动
+	 * @param url 数据库连接
+	 * @param username 用户名
+	 * @param password 密码
+	 * @return 表信息
+	 */
+	public static List<DBTable> getTableInfo(String driverClass, String url, String username,
+			String password) {
+		List<DBTable> tables = new ArrayList<>();
+		try (Connection conn = getConn(driverClass, url, username, password);) {
+			DatabaseMetaData metaData = conn.getMetaData();
+			ResultSet result = metaData.getTables(null, null, null, new String[] { "TABLE" });
+			while (result.next()) {
+				tables.add(getColumns(result.getString("TABLE_NAME"), conn));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return tables;
+	}
+
+	/**
+	 * 获得单个表的字段以及相关信息
+	 * @param tableName 表名
+	 * @param conn 数据库连接
+	 * @return 表信息
+	 */
+	public static DBTable getColumns(String tableName, Connection conn) {
+		try (PreparedStatement stmt = conn
+				.prepareStatement(MessageFormat.format(DBConfig.COLUMN_SQL, tableName));
+				ResultSet rs = stmt.executeQuery(MessageFormat.format(DBConfig.COLUMN_SQL, tableName));) {
+			ResultSetMetaData data = rs.getMetaData();
+			List<DBColumn> columns = new ArrayList<DBColumn>();
+			for (int i = 1; i <= data.getColumnCount(); i++) {
+				columns.add(DBColumn.builder().columnName(data.getColumnName(i))
+						.sqlType(data.getColumnTypeName(i)).javaClass(data.getColumnClassName(i))
+						.length(data.getPrecision(i)).scale(data.getScale(i))
+						.isAutoAdd(data.isAutoIncrement(i)).isCurrency(data.isCurrency(i))
+						.isNullable(data.isNullable(i)).isReadOnly(data.isReadOnly(i)).build());
+			}
+			return DBTable.builder().catalogName(conn.getCatalog()).tableName(tableName)
+					.tableCount(data.getColumnCount()).columns(columns).build();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static void buildFile(String url, String username, String password) {
+		buildFile(DriverEnum.getDriverClass(url), url, username, password);
+	}
+
+	public static void buildFile(String driverClass, String url, String username, String password) {
+		List<DBTable> tableInfo = getTableInfo(driverClass, url, username, password);
+		for (DBTable table : tableInfo) {
+			System.out.println(table.getTableName());
+			buildFile(table.getTableName());
+		}
+	}
+
+	public static void buildFile(String tableName) {
+		VelocityEngine ve = new VelocityEngine();
+		ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
+		ve.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
+		ve.init();
+
+		Template temp = ve.getTemplate("/templates/Entity.java.vm");
+		VelocityContext context = new VelocityContext();
+		try (FileWriter fw = new FileWriter("src/main/java/com/wy/test/" + tableName + ".java");) {
+			temp.merge(context, fw);
+			fw.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	/**
-	 * 数据库匹配相应驱动
-	 */
-	public static Map<String, String> DRIVERCLASS = new HashMap<String, String>() {
-		private static final long serialVersionUID = 1L;
-		{
-			put("mysql", DRIVERCLASS_MYSQL);
-			put("oracle", DRIVERCLASS_ORACLE);
-			put("sqlserver", DRIVERCLASS_SQLSERVER);
-		}
-	};
-
-	/**
-	 * 根据数据库类型选择驱动
-	 */
-	private static void getDriverClass(String url) {
-		for (String key : DRIVERCLASS.keySet()) {
-			if (url.contains(key)) {
-				driverClass = DRIVERCLASS.get(key);
-				break;
-			}
-		}
-	}
-
-	/**
-	 * 根据数据库类型选择驱动
-	 */
-	public static String getDbType(String url) {
-		for (String key : DRIVERCLASS.keySet()) {
-			if (url.contains(key)) {
-				return key;
-			}
-		}
-		return null;
-	}
-
-	public static Connection getConn(String url, String username, String password) {
-		getDriverClass(url);
-		try {
-			Class.forName(driverClass);
-			Connection connection = DriverManager.getConnection(url, username, password);
-			return connection;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	/**
-	 * 根据数据库类型返回java类型,不精准,需自己校正
-	 * number,decimal,numeric,real需根据保留小数位判断,若小数位为空或0,则取整,否则返回double
-	 */
-	public static String sql2Java(String sqlType, Integer scale) {
-		for (String key : JAVA_TO_SQL.keySet()) {
-			if (JAVA_TO_SQL.get(key).contains(sqlType.toLowerCase())) {
-				return key;
-			}
-		}
-		return "Object";
+	public static void main(String[] args) {
+		buildFile("jdbc:mysql://localhost:3306/simpleoa?autoReconnect=true&amp;useUnicode=true",
+				"root", "52LDforever");
 	}
 }
