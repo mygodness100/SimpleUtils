@@ -6,8 +6,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Set;
 
 import com.wy.enums.Java2SqlEnum;
 
@@ -22,10 +24,20 @@ public class DBConfig {
 
 	public static final String FILE_ = null;
 
+	public static final HashMap<String, String> DBCONFIG_CONN = new HashMap<String, String>() {
+		private static final long serialVersionUID = 1L;
+		{
+			put("dirverClass", "");
+			put("url", "");
+			put("username", "");
+			put("password", "");
+		}
+	};
+
 	/**
 	 * 默认java类型和sql类型对照关系
 	 */
-	public static final HashMap<String, List<String>> JAVA_TO_SQL = new HashMap<String, List<String>>() {
+	public static final HashMap<String, List<String>> DBCONFIG_JAVA2SQL = new HashMap<String, List<String>>() {
 		private static final long serialVersionUID = 1L;
 		{
 			put("Integer", Java2SqlEnum.INTEGER.getSqlType());
@@ -42,7 +54,7 @@ public class DBConfig {
 	/**
 	 * 默认生成mvc相关文件的配置
 	 */
-	public static final HashMap<String, Object> MVC_CONFIG = new HashMap<String, Object>() {
+	public static final HashMap<String, Object> DBCONFIG_MVC = new HashMap<String, Object>() {
 		private static final long serialVersionUID = 1L;
 		{
 			put("project_entity", "src/main/java");
@@ -63,6 +75,8 @@ public class DBConfig {
 			put("base_xml", "");
 			put("base_service", "");
 			put("base_controller", "");
+			put("table_prefix", "");
+			put("column_toHump", true);
 		}
 	};
 
@@ -82,10 +96,10 @@ public class DBConfig {
 				for (Map.Entry<Object, Object> entry : props.entrySet()) {
 					if (!Objects.isNull(entry.getValue())) {
 						if ("bytes".equals((String) entry.getKey())) {
-							JAVA_TO_SQL.put("byte[]",
+							DBCONFIG_JAVA2SQL.put("byte[]",
 									Arrays.asList(((String) entry.getValue()).split(",")));
 						} else {
-							JAVA_TO_SQL.put((String) entry.getKey(),
+							DBCONFIG_JAVA2SQL.put((String) entry.getKey(),
 									Arrays.asList(((String) entry.getValue()).split(",")));
 						}
 					}
@@ -95,7 +109,18 @@ public class DBConfig {
 			if (!Objects.isNull(db)) {
 				props.clear();
 				props.load(db);
-
+				Set<Entry<Object, Object>> entrySet = props.entrySet();
+				for (Entry<Object, Object> entry : entrySet) {
+					String key = (String) entry.getKey();
+					if (key.indexOf("driverClass") != -1 || key.indexOf("url") != -1
+							|| key.indexOf("username") != -1 || key.indexOf("password") != -1) {
+						DBCONFIG_CONN.put(key, (String) entry.getValue());
+					} else {
+						if (!Objects.isNull(entry.getValue())) {
+							DBCONFIG_MVC.put(key, entry.getValue());
+						}
+					}
+				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

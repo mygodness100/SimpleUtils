@@ -30,8 +30,8 @@ public class DBUtils {
 	 * 根据数据库类型返回java类型,不精准,需自己校正
 	 */
 	public static String sql2Java(String sqlType) {
-		for (String key : DBConfig.JAVA_TO_SQL.keySet()) {
-			if (DBConfig.JAVA_TO_SQL.get(key).contains(sqlType.toLowerCase())) {
+		for (String key : DBConfig.DBCONFIG_JAVA2SQL.keySet()) {
+			if (DBConfig.DBCONFIG_JAVA2SQL.get(key).contains(sqlType.toLowerCase())) {
 				return key;
 			}
 		}
