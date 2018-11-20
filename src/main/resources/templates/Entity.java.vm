@@ -1,4 +1,4 @@
-package com.wy.entity;
+package ${packageEntity};
 
 import java.io.Serializable;
 

@@ -11,6 +11,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.velocity.Template;
@@ -24,6 +25,10 @@ import com.wy.enums.DriverEnum;
 public class DBUtils {
 
 	private DBUtils() {
+	}
+	
+	static {
+		DBConfig.rewriteConfig();
 	}
 
 	/**
@@ -98,7 +103,8 @@ public class DBUtils {
 	public static DBTable getColumns(String tableName, Connection conn) {
 		try (PreparedStatement stmt = conn
 				.prepareStatement(MessageFormat.format(DBConfig.COLUMN_SQL, tableName));
-				ResultSet rs = stmt.executeQuery(MessageFormat.format(DBConfig.COLUMN_SQL, tableName));) {
+				ResultSet rs = stmt
+						.executeQuery(MessageFormat.format(DBConfig.COLUMN_SQL, tableName));) {
 			ResultSetMetaData data = rs.getMetaData();
 			List<DBColumn> columns = new ArrayList<DBColumn>();
 			for (int i = 1; i <= data.getColumnCount(); i++) {
@@ -136,11 +142,38 @@ public class DBUtils {
 
 		Template temp = ve.getTemplate("/templates/Entity.java.vm");
 		VelocityContext context = new VelocityContext();
+		context.put("DBConfig", DBConfig.DBCONFIG_MVC);
 		try (FileWriter fw = new FileWriter("src/main/java/com/wy/test/" + tableName + ".java");) {
 			temp.merge(context, fw);
 			fw.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+
+	public static void buildFile(List<String> templates, String configFile) {
+		HashMap<String, String> dbconfigConn = DBConfig.DBCONFIG_CONN;
+		List<DBTable> tableInfo = getTableInfo(dbconfigConn.get("driverClass"),
+				dbconfigConn.get("url"), dbconfigConn.get("username"),
+				dbconfigConn.get("password"));
+		VelocityEngine ve = new VelocityEngine();
+		ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
+		ve.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
+		ve.init();
+		for (DBTable table : tableInfo) {
+			for (String template : templates) {
+				Template temp = ve.getTemplate(template);
+				VelocityContext context = new VelocityContext();
+				context.put("DBConfig", DBConfig.DBCONFIG_MVC);
+				context.put("DBTable", table);
+				try (FileWriter fw = new FileWriter(
+						"src/main/java/com/wy/test/" + table.getTableName() + ".java");) {
+					temp.merge(context, fw);
+					fw.flush();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 

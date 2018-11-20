@@ -49,51 +49,50 @@ public class ClassUtils {
 		}
 		return false;
 	}
-	
+
 	/**
-	 * 判断是否是基本类型的包装类
-	 * 每个基本类型的包装类都有一个TYPE的字段,且都是static final
+	 * 判断是否是基本类型的包装类 每个基本类型的包装类都有一个TYPE的字段,且都是static final
 	 * Field.get(null)表示获得静态变量的值,如果是一个实例,则获得是对应实例的字段的值
 	 */
 	public static boolean isWrapClass(Class<?> clazz) {
 		try {
-			return ((Class<?>)(clazz.getField("TYPE").get(null))).isPrimitive();
+			return ((Class<?>) (clazz.getField("TYPE").get(null))).isPrimitive();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return false;
 	}
-	
+
 	/**
 	 * 获得包装类型的对应的基本类型
 	 */
 	public static Class<?> getBaseClass(Class<?> clazz) {
-		if(isWrapClass(clazz)) {
+		if (isWrapClass(clazz)) {
 			try {
-				return (Class<?>)(clazz.getField("TYPE").get(null));
+				return (Class<?>) (clazz.getField("TYPE").get(null));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 		return clazz;
 	}
-	
+
 	/**
 	 * Map转换成实体类
 	 */
 	public static <T> T mapToBean(Map<String, Object> map, Class<T> clazz) {
 		return JSON.parseObject(JSON.toJSONString(map), clazz);
 	}
-	
+
 	/**
 	 * Map转换成实体类
 	 */
 	public static <T> T mapToBean2(Map<String, Object> map, Class<T> clazz) {
 		try {
-			if(MapUtils.isNotBlank(map)) {				
+			if (MapUtils.isNotBlank(map)) {
 				Field[] fields = clazz.getDeclaredFields();
 				T t = clazz.newInstance();
-				for(Field field : fields) {
+				for (Field field : fields) {
 					field.setAccessible(true);
 					field.set(t, map.get(field.getName()));
 				}

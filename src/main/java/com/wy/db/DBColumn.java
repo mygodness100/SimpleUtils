@@ -15,7 +15,8 @@ import lombok.Setter;
 @Builder
 public class DBColumn {
 
-	private String columnName;// 字段名
+	private String columnName;// 数据库字段名
+	private String javaName;// java实体类字段名
 	private Integer length;// 字段长度
 	private Integer scale;// 数字类型的精确度
 	private String sqlType;// 数据库字段类型

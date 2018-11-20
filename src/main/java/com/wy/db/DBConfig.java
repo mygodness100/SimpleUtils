@@ -9,9 +9,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.Set;
 
 import com.wy.enums.Java2SqlEnum;
+import com.wy.utils.StrUtils;
 
 /**
  * 数据库配置文件
@@ -81,14 +81,64 @@ public class DBConfig {
 	};
 
 	/**
-	 * 若存在配置文件,则使用配置文件的对应关系,若不存在,则直接使用默认对应关系
+	 * 重写所有的资源配置文件
 	 */
-	static {
+	public static void rewriteConfig() {
+		rewriteJava2Sql();
+		rewriteMVC();
+	}
+
+	/**
+	 * 重写配置文件,默认配置文件放在资源目录下的generator/generator.properties里
+	 */
+	public static void rewriteMVC() {
+		rewriteMVC(null);
+	}
+
+	/**
+	 * 若存在配置文件,则使用配置文件的对应关系,若不存在,则直接使用默认对应关系
+	 * @param configFile 资源配置文件牡蛎
+	 */
+	public static void rewriteMVC(String configFile) {
+		configFile = StrUtils.isBlank(configFile) ? "generator/generator.properties" : configFile;
 		Properties props = new Properties();
-		try (InputStream is = DBUtils.class.getClassLoader()
-				.getResourceAsStream("generator/java2sql.properties");
-				InputStream db = DBUtils.class.getClassLoader()
-						.getResourceAsStream("generator/generator.properties");) {
+		try (InputStream db = DBUtils.class.getClassLoader().getResourceAsStream(configFile);) {
+			// 加载生成mvc文件的配置文件
+			if (!Objects.isNull(db)) {
+				props.clear();
+				props.load(db);
+				for (Entry<Object, Object> entry : props.entrySet()) {
+					String key = (String) entry.getKey();
+					if (key.indexOf("driverClass") != -1 || key.indexOf("url") != -1
+							|| key.indexOf("username") != -1 || key.indexOf("password") != -1) {
+						DBCONFIG_CONN.put(key, (String) entry.getValue());
+					} else {
+						if (!Objects.isNull(entry.getValue())) {
+							DBCONFIG_MVC.put(key, entry.getValue());
+						}
+					}
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 重写java与sql类型的关系对照表,默认配置文件放在资源文件的generator/java2sql.properties中
+	 */
+	public static void rewriteJava2Sql() {
+		rewriteJava2Sql(null);
+	}
+
+	/**
+	 * 重写java与sql类型的关系对照表
+	 * @param configFile 配置文件地址
+	 */
+	public static void rewriteJava2Sql(String configFile) {
+		configFile = StrUtils.isBlank(configFile) ? "generator/java2sql.properties" : configFile;
+		Properties props = new Properties();
+		try (InputStream is = DBUtils.class.getClassLoader().getResourceAsStream(configFile);) {
 			// 加载java和sql类型的对照文件
 			if (!Objects.isNull(is)) {
 				props.clear();
@@ -101,23 +151,6 @@ public class DBConfig {
 						} else {
 							DBCONFIG_JAVA2SQL.put((String) entry.getKey(),
 									Arrays.asList(((String) entry.getValue()).split(",")));
-						}
-					}
-				}
-			}
-			// 加载生成mvc文件的配置文件
-			if (!Objects.isNull(db)) {
-				props.clear();
-				props.load(db);
-				Set<Entry<Object, Object>> entrySet = props.entrySet();
-				for (Entry<Object, Object> entry : entrySet) {
-					String key = (String) entry.getKey();
-					if (key.indexOf("driverClass") != -1 || key.indexOf("url") != -1
-							|| key.indexOf("username") != -1 || key.indexOf("password") != -1) {
-						DBCONFIG_CONN.put(key, (String) entry.getValue());
-					} else {
-						if (!Objects.isNull(entry.getValue())) {
-							DBCONFIG_MVC.put(key, entry.getValue());
 						}
 					}
 				}
