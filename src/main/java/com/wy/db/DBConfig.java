@@ -27,7 +27,7 @@ public class DBConfig {
 	public static final HashMap<String, String> DBCONFIG_CONN = new HashMap<String, String>() {
 		private static final long serialVersionUID = 1L;
 		{
-			put("dirverClass", "");
+			put("driverClass", "");
 			put("url", "");
 			put("username", "");
 			put("password", "");
@@ -104,14 +104,21 @@ public class DBConfig {
 		Properties props = new Properties();
 		try (InputStream db = DBUtils.class.getClassLoader().getResourceAsStream(configFile);) {
 			// 加载生成mvc文件的配置文件
+			System.out.println(db);
 			if (!Objects.isNull(db)) {
 				props.clear();
 				props.load(db);
 				for (Entry<Object, Object> entry : props.entrySet()) {
+					System.out.println(entry.getKey()+":"+entry.getValue());
 					String key = (String) entry.getKey();
-					if (key.indexOf("driverClass") != -1 || key.indexOf("url") != -1
-							|| key.indexOf("username") != -1 || key.indexOf("password") != -1) {
-						DBCONFIG_CONN.put(key, (String) entry.getValue());
+					if (key.indexOf("driverClass") != -1 ){
+						DBCONFIG_CONN.put("driverClass", (String) entry.getValue());
+					} else if(key.indexOf("url") != -1) {
+						DBCONFIG_CONN.put("url", (String) entry.getValue());
+					} else if(key.indexOf("username") != -1) {
+						DBCONFIG_CONN.put("username", (String) entry.getValue());
+					} else if(key.indexOf("password") != -1) {
+						DBCONFIG_CONN.put("password", (String) entry.getValue());
 					} else {
 						if (!Objects.isNull(entry.getValue())) {
 							DBCONFIG_MVC.put(key, entry.getValue());

@@ -1,4 +1,4 @@
-package ${packageEntity};
+package ${dbConfig.package_entity};
 
 import java.io.Serializable;
 
@@ -9,13 +9,12 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @Setter
-public class ${entityName} implements Serializable{
+public class ${dbTable.tableAlias} implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 
-	private Integer buttonId;
-
-	private String buttonName;
-
-	private Integer menuId;
+#foreach($column in $dbTable.columns)
+	private $column.javaType $column.columnAlias;
+	
+#end
 }
