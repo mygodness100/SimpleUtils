@@ -187,12 +187,11 @@ public class ExcelPOI {
 		return writeExcel((Workbook) wb, datas, path, null);
 	}
 
-	public static boolean writeExcel(Workbook wb, List<List<List<String>>> excel, String path, CellStyle cellStyle) {
-		FileOutputStream fos = null;
-		try {
+	public static boolean writeExcel(Workbook wb, List<List<List<String>>> excel, String path,
+			CellStyle cellStyle) {
+		try (FileOutputStream fos = new FileOutputStream(path);) {
 			// 需判断文件是否存在,判断文件结尾
 			// TODO
-			fos = new FileOutputStream(path);
 			for (int page = 0; page < excel.size(); page++) {
 				// 创建表单
 				Sheet sheet = wb.createSheet();
@@ -214,7 +213,6 @@ public class ExcelPOI {
 				wb.setSheetName(page, "第" + page + "页");
 			}
 			wb.write(fos);
-			fos.close();
 			wb.close();
 			return true;
 		} catch (Exception e) {
@@ -224,9 +222,6 @@ public class ExcelPOI {
 			if (wb != null) {
 				try {
 					wb.close();
-					if (fos != null) {
-						fos.close();
-					}
 				} catch (Exception e2) {
 					e2.printStackTrace();
 					return false;
@@ -248,7 +243,7 @@ public class ExcelPOI {
 	 * @param excel 数据源
 	 * @param path 写入文件路径
 	 */
-	public List<Map<String,Object>> readExcel(String path) {
+	public List<Map<String, Object>> readExcel(String path) {
 		// TODO
 		File file = new File(path);
 		if (!file.exists()) {
@@ -304,7 +299,8 @@ public class ExcelPOI {
 		for (int j = 1; j < rows + 1; j++) {
 			Map<String, Object> rowData = new HashMap<>();
 			for (int k = 0; k < cellNum; k++) {
-				String cellVal = handlerCell(sheet.getRow(j).getCell(k).getCellTypeEnum(), sheet.getRow(j).getCell(k));
+				String cellVal = handlerCell(sheet.getRow(j).getCell(k).getCellTypeEnum(),
+						sheet.getRow(j).getCell(k));
 				rowData.put(first.getCell(k).getStringCellValue(), cellVal);
 			}
 			res.add(rowData);
@@ -314,17 +310,17 @@ public class ExcelPOI {
 
 	private String handlerCell(CellType cellType, Cell cell) {
 		switch (cellType) {
-		case BLANK:
-		case _NONE:
-			return null;
-		case BOOLEAN:
-			return String.valueOf(cell.getBooleanCellValue());
-		case NUMERIC:
-			return String.valueOf((long) cell.getNumericCellValue());
-		case STRING:
-			return cell.getStringCellValue();
-		default:
-			return null;
+			case BLANK:
+			case _NONE:
+				return null;
+			case BOOLEAN:
+				return String.valueOf(cell.getBooleanCellValue());
+			case NUMERIC:
+				return String.valueOf((long) cell.getNumericCellValue());
+			case STRING:
+				return cell.getStringCellValue();
+			default:
+				return null;
 		}
 	}
 }
