@@ -7,11 +7,11 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.alibaba.fastjson.JSON;
 import com.wy.common.Encoding;
@@ -250,7 +250,7 @@ public class HttpUtils {
 		if (StrUtils.isBlank(url) || MapUtils.isBlank(params)) {
 			return url;
 		}
-		return url + "?" + createParams(params, isEncode);
+		return MessageFormat.format("{0}?{1}", url, createParams(params, isEncode));
 	}
 
 	/**
@@ -265,9 +265,8 @@ public class HttpUtils {
 	 */
 	public static String createParams(Map<String, Object> params, boolean isEncode,
 			String charset) {
-		Set<String> keys = params.keySet();
 		List<String> list = new ArrayList<>();
-		for (String key : keys) {
+		for (String key : params.keySet()) {
 			if (isEncode) {
 				try {
 					list.add(URLEncoder.encode(serializerParams(key, params.get(key)), charset));
