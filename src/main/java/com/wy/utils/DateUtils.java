@@ -29,11 +29,22 @@ public final class DateUtils {
 		return format(date, DateEnum.WEEK);
 	}
 
+	public static String getWeek(long date) {
+		return format(new Date(date), DateEnum.WEEK);
+	}
+
 	/**
 	 * 返回当前时间年月日字符串
 	 */
 	public static String formatDate() {
 		return format(new Date(), DateEnum.DATE);
+	}
+
+	/**
+	 * 返回指定时间年月日字符串
+	 */
+	public static String formatDate(long date) {
+		return format(new Date(date), DateEnum.DATE);
 	}
 
 	/**
@@ -53,6 +64,13 @@ public final class DateUtils {
 	/**
 	 * 返回指定时间时分秒字符串
 	 */
+	public static String formatTime(long date) {
+		return format(date, DateEnum.TIME);
+	}
+
+	/**
+	 * 返回指定时间时分秒字符串
+	 */
 	public static String formatTime(Date date) {
 		return format(date, DateEnum.TIME);
 	}
@@ -67,12 +85,37 @@ public final class DateUtils {
 	/**
 	 * 返回指定时间转换为年月日时分秒字符串
 	 */
+	public static String formatDateTime(long date) {
+		return format(date, DEFAULT_PATTERN);
+	}
+
+	/**
+	 * 返回指定时间转换为年月日时分秒字符串
+	 */
 	public static String formatDateTime(Date date) {
 		return format(date, DEFAULT_PATTERN);
 	}
 
+	/**
+	 * 返回指定时间转换为年月日时分秒字符串
+	 */
+	public static String format(long date, DateEnum pattern) {
+		return format(date, pattern.getFormat());
+	}
+
+	/**
+	 * 返回指定时间转换为年月日时分秒字符串
+	 */
 	public static String format(Date date, DateEnum pattern) {
 		return format(date, pattern.getFormat());
+	}
+
+	/**
+	 * 返回指定时间,指定格式的自定义年月日时分秒字符串
+	 */
+	public static String format(long date, String pattern) {
+		date = date < 0 ? 0 : date;
+		return format(new Date(date), pattern);
 	}
 
 	/**
@@ -88,14 +131,21 @@ public final class DateUtils {
 	}
 
 	/**
-	 * 将时间字符串转换为年月日或年月日时分秒的date
+	 * 将时间字符串转换为yyyy-MM-dd HH:mm:ss
 	 */
-	public static Date parse(String date, DateEnum type) {
-		return parse(date, type.getFormat());
+	public static Date parse(String date) {
+		return parse(date, DEFAULT_PATTERN);
 	}
 
 	/**
-	 * 将时间字符串转换为相应的date
+	 * 将时间字符串转换为指定格式的date
+	 */
+	public static Date parse(String date, DateEnum pattern) {
+		return parse(date, pattern.getFormat());
+	}
+
+	/**
+	 * 将时间字符串转换为指定格式的date
 	 */
 	public static Date parse(String date, String pattern) {
 		try {
