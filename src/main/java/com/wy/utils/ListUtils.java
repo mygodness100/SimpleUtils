@@ -99,12 +99,19 @@ public final class ListUtils {
 		return -1;
 	}
 
+	public static <T> ListBuilder<T> getBuilder() {
+		return new ListBuilder<T>();
+	}
+
 	public static <T> ListBuilder<T> getBuilder(T val) {
 		return new ListBuilder<T>(val);
 	}
 
 	public static class ListBuilder<T> {
 		private List<T> list = new ArrayList<>();
+
+		public ListBuilder() {
+		}
 
 		public ListBuilder(T val) {
 			list.add(val);

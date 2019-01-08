@@ -2,23 +2,34 @@ package com.wy.excel;
 
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
- * excel所有行对象集合
- * @author 万杨
+ * excel单个sheet页面所有行数据
+ * @author paradiseWy
  */
+@Getter
+@Setter
 public class ExcelPage {
-	
-	private List<ExcelRow> rowDatas;		//当前页所有行数据
 
-	public List<ExcelRow> getRowDatas() {
-		return rowDatas;
-	}
+	private List<ExcelRow> rowDatas; // 当前页所有行数据
 
-	public void setRowDatas(List<ExcelRow> rowDatas) {
-		this.rowDatas = rowDatas;
-	}
-
-	public Integer getSize() {
+	public int getSize() {
 		return rowDatas.size();
+	}
+
+	/**
+	 * 每一行的数据
+	 * @author paradiseWy
+	 */
+	@Getter
+	@Setter
+	public static class ExcelRow {
+		private List<Object> colDatas;
+
+		public int getSize() {
+			return colDatas.size();
+		}
 	}
 }

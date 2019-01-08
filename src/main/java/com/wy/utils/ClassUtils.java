@@ -7,10 +7,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.alibaba.fastjson.JSON;
+import com.wy.utils.ListUtils.ListBuilder;
 
 public class ClassUtils {
 
@@ -57,7 +59,8 @@ public class ClassUtils {
 	public static boolean isWrapClass(Class<?> clazz) {
 		try {
 			return ((Class<?>) (clazz.getField("TYPE").get(null))).isPrimitive();
-		} catch (Exception e) {
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException
+				| SecurityException e) {
 			e.printStackTrace();
 		}
 		return false;
@@ -122,5 +125,35 @@ public class ClassUtils {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	/**
+	 * 将实体类的所有字段提取出来放到一个list中
+	 * @param clazz 字节码
+	 * @return 集合
+	 */
+	public static <T> List<String> getEntityField(Class<T> clazz) {
+		return getEntityField(clazz, false);
+	}
+
+	/**
+	 * 将实体类的所有字段提取出来放到一个list中
+	 * @param clazz 字节码
+	 * @param primitive 是否只提取基本类和字符串,默认false
+	 * @return 集合
+	 */
+	public static <T> List<String> getEntityField(Class<T> clazz, boolean primitive) {
+		Field[] fields = clazz.getDeclaredFields();
+		ListBuilder<String> builder = ListUtils.getBuilder();
+		for (Field field : fields) {
+			field.setAccessible(true);
+			if (primitive) {
+				if (!isPrimitives(field.getType()) && !isWrapClass(field.getType())) {
+					continue;
+				}
+			}
+			builder = builder.add(field.getName());
+		}
+		return builder.build();
 	}
 }

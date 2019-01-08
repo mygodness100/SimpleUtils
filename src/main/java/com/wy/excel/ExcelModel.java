@@ -2,23 +2,20 @@ package com.wy.excel;
 
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
- * excel的模型
+ * excel所有sheet页数据
  * @author 万杨
  */
+@Getter
+@Setter
 public class ExcelModel {
-	
-	private List<ExcelPage> pageDatas;		//所有页面数据集合
 
-	public List<ExcelPage> getPageDatas() {
-		return pageDatas;
-	}
+	private List<ExcelPage> pageDatas; // 所有页面数据集合
 
-	public void setPageDatas(List<ExcelPage> pageDatas) {
-		this.pageDatas = pageDatas;
-	}
-	
-	public Integer getSize() {
+	public int getSize() {
 		return pageDatas.size();
 	}
 }
