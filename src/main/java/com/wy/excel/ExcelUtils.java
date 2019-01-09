@@ -82,21 +82,20 @@ public class ExcelUtils {
 	}
 
 	/**
-	 * 根据excel文件的结尾来自动判断生成那种版本的excel,若传的文件没有指定类型,自动归结为低版本excel
+	 * 根据excel文件的结尾判断生成那种版本的excel,若未指定类型,自动归结为低版本excel
 	 * 
 	 * @param path 以.xls或xlsx结尾的文件路径
-	 * @param list 数据源
-	 * @param subject 是否添加字段名称,true添加false不添加,默认添加
+	 * @param list 实体类数据源集合
 	 */
 	public static <T> boolean writeExcel(List<T> list, String path) {
 		return writeExcel(list, path, true);
 	}
 
 	/**
-	 * 根据excel文件的结尾来自动判断生成那种版本的excel,若传的文件没有指定类型,自动归结为低版本excel
+	 * 根据excel文件的结尾判断生成那种版本的excel,若未指定类型,自动归结为低版本excel
 	 * 
 	 * @param path 以.xls或xlsx结尾的文件路径
-	 * @param list 数据源
+	 * @param list 实体类数据源集合
 	 * @param subject 是否添加字段名称,true添加false不添加,默认添加
 	 */
 	public static <T> boolean writeExcel(List<T> list, String path, boolean subject) {
@@ -117,7 +116,7 @@ public class ExcelUtils {
 					Field field = clazz.getDeclaredField(allField.get(j));
 					field.setAccessible(true);
 					Cell cell = row.createCell(j);
-					if (Date.class == field.getType() && !Objects.isNull(field.get(t))) {
+					if (!Objects.isNull(field.get(t)) && Date.class == field.getType()) {
 						cell.setCellValue((Date) field.get(t));
 					} else {
 						cell.setCellValue(Objects.toString(field.get(t), ""));
@@ -129,12 +128,12 @@ public class ExcelUtils {
 				createFirst(sheet, allField);
 			}
 			workbook.write(fos);
+			return true;
 		} catch (IOException | NoSuchFieldException | SecurityException
 				| IllegalAccessException e) {
 			e.printStackTrace();
 			return false;
 		}
-		return true;
 	}
 
 	/**
@@ -153,15 +152,54 @@ public class ExcelUtils {
 	}
 
 	/**
-	 * 根据excel文件的结尾来自动判断生成那种版本的excel,若传的文件没有指定类型,自动归结为低版本excel
+	 * 根据excel文件的结尾判断生成那种版本的excel,若未指定类型,自动归结为低版本excel
 	 * 
 	 * @param path 以.xls或xlsx结尾的文件路径
-	 * @param list 数据源
+	 * @param list map类数据源集合
 	 */
-	public static boolean writeExcelAuto(String path, List<List<String>> list) {
-		List<List<List<String>>> excel = new ArrayList<>();
-		excel.add(list);
-		return writeExcel(excel, path);
+	public static boolean writeExcel(String path, List<Map<String, Object>> list) {
+		return writeExcel(path, list, true);
+	}
+
+	/**
+	 * 根据excel文件的结尾判断生成那种版本的excel,若未指定类型,自动归结为低版本excel
+	 * 
+	 * @param path 以.xls或xlsx结尾的文件路径
+	 * @param list map类数据源集合
+	 * @param subject 是否添加字段名称,true添加false不添加,默认添加
+	 */
+	public static boolean writeExcel(String path, List<Map<String, Object>> list, boolean subject) {
+		if (StrUtils.isBlank(path) || ListUtils.isBlank(list)) {
+			log.info("路径不存在或数据源为空!");
+			return false;
+		}
+		try (FileOutputStream fos = new FileOutputStream(path);
+				Workbook workbook = createWorkbook(path);) {
+			Sheet sheet = workbook.createSheet();
+			int beginRow = subject ? 1 : 0;
+			List<String> allField = new ArrayList<>(list.get(0).keySet());
+			for (int i = 0; i < list.size(); i++) {
+				Row row = sheet.createRow(beginRow);
+				for (int j = 0; j < allField.size(); j++) {
+					Object object = list.get(i).get(allField.get(j));
+					Cell cell = row.createCell(j);
+					if (object != null && Date.class == object.getClass()) {
+						cell.setCellValue((Date) object);
+					} else {
+						cell.setCellValue(Objects.toString(object, ""));
+					}
+				}
+				beginRow++;
+			}
+			if (subject) {
+				createFirst(sheet, allField);
+			}
+			workbook.write(fos);
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 	/**
@@ -170,7 +208,19 @@ public class ExcelUtils {
 	 * @param path 以.xls或xlsx结尾的文件路径
 	 * @param list 数据源
 	 */
-	public static boolean createExcelAuto(List<List<List<String>>> excel, String path) {
+	public static boolean writeExcelAuto(String path, List<List<Object>> datas) {
+		List<List<List<Object>>> excel = new ArrayList<>();
+		excel.add(datas);
+		return writeExcelAuto(excel, path);
+	}
+
+	/**
+	 * 根据excel文件的结尾来自动判断生成那种版本的excel,若传的文件没有指定类型,自动归结为低版本excel
+	 * 
+	 * @param path 以.xls或xlsx结尾的文件路径
+	 * @param list 数据源
+	 */
+	public static boolean writeExcelAuto(List<List<List<Object>>> excel, String path) {
 		Workbook workbook = createWorkbook(path);
 		return writeExcel(workbook, excel, path);
 	}
@@ -181,11 +231,10 @@ public class ExcelUtils {
 	 * @param excel 数据源
 	 * @param path 写入文件路径
 	 */
-	public static boolean writeXLS(String path, List<List<String>> excel) {
-		List<List<List<String>>> list = new ArrayList<>();
-		list.add(excel);
-		Workbook wb = new HSSFWorkbook();
-		return writeExcel(wb, list, path);
+	public static boolean writeXLS(String path, List<List<Object>> datas) {
+		List<List<List<Object>>> excel = new ArrayList<>();
+		excel.add(datas);
+		return writeXLS(excel, path);
 	}
 
 	/**
@@ -194,9 +243,8 @@ public class ExcelUtils {
 	 * @param excel 数据源
 	 * @param path 写入文件路径
 	 */
-	public static boolean writeXLS(List<List<List<String>>> excel, String path) {
-		Workbook wb = new HSSFWorkbook();
-		return writeExcel(wb, excel, path);
+	public static boolean writeXLS(List<List<List<Object>>> excel, String path) {
+		return writeExcel(new HSSFWorkbook(), excel, path);
 	}
 
 	/**
@@ -205,11 +253,10 @@ public class ExcelUtils {
 	 * @param excel 数据源
 	 * @param path 写入文件路径
 	 */
-	public static boolean writeXLSX(String path, List<List<String>> excel) {
-		List<List<List<String>>> list = new ArrayList<>();
-		list.add(excel);
-		Workbook wb = new XSSFWorkbook();
-		return writeExcel(wb, list, path);
+	public static boolean writeXLSX(String path, List<List<Object>> datas) {
+		List<List<List<Object>>> excel = new ArrayList<>();
+		excel.add(datas);
+		return writeXLSX(excel, path);
 	}
 
 	/**
@@ -218,9 +265,8 @@ public class ExcelUtils {
 	 * @param excel 数据源
 	 * @param path 写入文件路径
 	 */
-	public static boolean writeXLSX(List<List<List<String>>> excel, String path) {
-		Workbook wb = new XSSFWorkbook();
-		return writeExcel(wb, excel, path);
+	public static boolean writeXLSX(List<List<List<Object>>> excel, String path) {
+		return writeExcel(new XSSFWorkbook(), excel, path);
 	}
 
 	/**
@@ -229,11 +275,11 @@ public class ExcelUtils {
 	 * @param excel 数据源
 	 * @param path 写入文件路径
 	 */
-	public static boolean writeExcel(Object wb, List<List<List<String>>> datas, String path) {
-		return writeExcel((Workbook) wb, datas, path, null);
+	public static boolean writeExcel(Workbook wb, List<List<List<Object>>> datas, String path) {
+		return writeExcel(wb, datas, path, null);
 	}
 
-	public static boolean writeExcel(Workbook wb, List<List<List<String>>> excel, String path,
+	public static boolean writeExcel(Workbook wb, List<List<List<Object>>> excel, String path,
 			CellStyle cellStyle) {
 		try (FileOutputStream fos = new FileOutputStream(path); Workbook workbook = wb;) {
 			for (int page = 0; page < excel.size(); page++) {
@@ -245,7 +291,7 @@ public class ExcelUtils {
 					// 列循环
 					for (int col = 0; col < excel.get(page).get(row).size(); col++) {
 						Cell c = r.createCell(col);
-						c.setCellValue(excel.get(page).get(row).get(col));
+						c.setCellValue(Objects.toString(excel.get(page).get(row).get(col), ""));
 						if (cellStyle != null) {
 							c.setCellStyle(cellStyle);
 						}
@@ -262,7 +308,7 @@ public class ExcelUtils {
 	}
 
 	/**
-	 * 根据excel模版来写入数据,需要先从一个excel中读取格式等信息 不同的版本需要不同的模版文件
+	 * 根据excel模版来写入数据,需要先从一个excel中读取格式等信息 不同的版本需要不同的模版文件 FIXME
 	 */
 	public static boolean writeTemp() {
 		return false;
@@ -291,7 +337,7 @@ public class ExcelUtils {
 	}
 
 	/**
-	 * cxcel必须有标题,若没有则将不会报错
+	 * excel必须有标题,若没有则将不会报错
 	 */
 	private List<Map<String, Object>> handlerRow(Sheet sheet) {
 		int rows = sheet.getLastRowNum();
