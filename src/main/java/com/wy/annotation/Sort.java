@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
 public @interface Sort {
 
 	/**
-	 * 默认排序字段为sort,value值代表的字段是java实体类字段,非数据库字段
+	 * 默认排序字段为实体类字段名,value值代表的字段是驼峰类字段,是数据库字段对应的驼峰字段
 	 */
-	String value() default "sort";
+	String value() default "";
 }
