@@ -25,6 +25,9 @@ public class Result implements Serializable {
 	private int code;
 	private String message;
 	private Object data;
+	private int pageIndex;
+	private int pageSize;
+	private int total;
 
 	public static Result ok() {
 		return ok(null);
@@ -74,6 +77,18 @@ public class Result implements Serializable {
 		return Result.builder().data(t).code(code)
 				.message(StrUtils.isBlank(message) ? (code > 0 ? "请求成功" : "请求失败") : message)
 				.build();
+	}
+
+	public static Result page(Object t, int pageIndex, int pageSize, int total) {
+		return Objects.isNull(t) ? page(0, null, null, 0, 0, 0)
+				: page(1, null, t, pageIndex, pageSize, total);
+	}
+
+	public static Result page(int code, String message, Object t, int pageIndex, int pageSize,
+			int total) {
+		return Result.builder()
+				.message(StrUtils.isBlank(message) ? (code > 0 ? "请求成功" : "请求失败") : message)
+				.code(code).data(t).pageIndex(pageIndex).pageSize(pageSize).total(total).build();
 	}
 
 	/**
