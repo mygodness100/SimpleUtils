@@ -6,13 +6,11 @@ import java.util.List;
 import com.wy.enums.RegexEnum;
 
 /**
- * 字符串帮助类
- * 正则表达式的分组:
- * @ (),每一个对括号表示一个分组,分组的顺序是从左括号出现的顺序,
- * @ $后面加一个数字表示对应某一个分组,替代分组中不可直接表达的字符串
+ * 字符串帮助类 正则表达式的分组: @ (),每一个对括号表示一个分组,分组的顺序是从左括号出现的顺序, @
+ * $后面加一个数字表示对应某一个分组,替代分组中不可直接表达的字符串
  * @example 快快乐乐 去掉叠词为快乐,pattern((.)\\1+,$1):
- * 第一个括号表示第一个分组中的任意字符;\\1表示第一个分组,\\2表示第2个分组,需要紧跟在分组之后
- * +表示可出现多个相同的任意字符,$1表示将分组中的.所代表的任意字符串替换到$1,$2则表示替换第二个分组
+ *          第一个括号表示第一个分组中的任意字符;\\1表示第一个分组,\\2表示第2个分组,需要紧跟在分组之后
+ *          +表示可出现多个相同的任意字符,$1表示将分组中的.所代表的任意字符串替换到$1,$2则表示替换第二个分组
  * 
  * @author wanyang 2018年7月7日
  */
@@ -20,7 +18,7 @@ public class StrUtils {
 
 	private StrUtils() {
 	}
-	
+
 	/**
 	 * 字符串是否为空,空字符串也判断为空
 	 */
@@ -74,28 +72,29 @@ public class StrUtils {
 	 * 将目标字符串的首字母变成大写
 	 */
 	public static String upperFirst(String src) {
-		if (isNotBlank(src) && src.length() > 0) {
-			char c = src.charAt(0);
-			if(c>='a' && c<='z') {
-				String temp = String.valueOf(c);
-				return src.replaceFirst(temp, temp.toUpperCase());
-			}
-		}
-		return src;
+		return changeFirst(src, true);
 	}
 
 	/**
 	 * 将目标字符串的首字母变成小写
 	 */
 	public static String lowerFirst(String src) {
-		if (isNotBlank(src) && src.length() >0) {
-			char c = src.charAt(0);
-			if (c >= 'A' && c <= 'Z') {
-				String temp = String.valueOf(c);
-				return src.replaceFirst(temp, temp.toLowerCase());
-			}
+		return changeFirst(src, false);
+	}
+
+	private static String changeFirst(String src, boolean capitalize) {
+		if (isBlank(src)) {
+			return src;
 		}
-		return src;
+		char baseChar = src.charAt(0);
+		char updatedChar = capitalize ? Character.toUpperCase(baseChar)
+				: Character.toLowerCase(baseChar);
+		if (baseChar == updatedChar) {
+			return src;
+		}
+		char[] chars = src.toCharArray();
+		chars[0] = updatedChar;
+		return new String(chars, 0, chars.length);
 	}
 
 	/**
@@ -139,10 +138,11 @@ public class StrUtils {
 
 	/**
 	 * 判断是否为中文字符,包括标点等 CJK的意思是“Chinese，Japanese，Korea”的简写
-	 * ，实际上就是指中日韩三国的象形文字的Unicode编码 CJK_UNIFIED_IDEOGRAPHS:4E00-9FBF:CJK 统一表意符号
+	 * ，实际上就是指中日韩三国的象形文字的Unicode编码
+	 * CJK_UNIFIED_IDEOGRAPHS:4E00-9FBF:CJK 统一表意符号
 	 * CJK_COMPATIBILITY_IDEOGRAPHS:F900-FAFF:CJK 兼容象形文字
-	 * CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A:3400-4DBF:CJK 统一表意符号扩展A
-	 * CJK_SYMBOLS_AND_PUNCTUATION:3000-303F:CJK 符号和标点
+	 * CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A:3400-4DBF:CJK
+	 * 统一表意符号扩展A CJK_SYMBOLS_AND_PUNCTUATION:3000-303F:CJK 符号和标点
 	 * HALFWIDTH_AND_FULLWIDTH_FORMS:FF00-FFEF:半角及全角形式
 	 * GENERAL_PUNCTUATION:2000-206F:常用标点
 	 */
@@ -165,20 +165,20 @@ public class StrUtils {
 	 */
 	public static String removeSpace(CharSequence str) {
 		if (isBlank(str)) {
-            return null;
-        }
-        final int sz = str.length();
-        final char[] chs = new char[sz];
-        int count = 0;
-        for (int i = 0; i < sz; i++) {
-            if (!Character.isWhitespace(str.charAt(i))) {
-                chs[count++] = str.charAt(i);
-            }
-        }
-        if (count == sz) {
-            return str.toString();
-        }
-        return new String(chs, 0, count);
+			return null;
+		}
+		final int sz = str.length();
+		final char[] chs = new char[sz];
+		int count = 0;
+		for (int i = 0; i < sz; i++) {
+			if (!Character.isWhitespace(str.charAt(i))) {
+				chs[count++] = str.charAt(i);
+			}
+		}
+		if (count == sz) {
+			return str.toString();
+		}
+		return new String(chs, 0, count);
 	}
 
 	/**
@@ -220,18 +220,18 @@ public class StrUtils {
 		}
 		return column;
 	}
-	
+
 	/**
 	 * 将蛇底式字段转换成驼峰式
 	 */
 	public static String hump2Snake(String str) {
 		int leng = str.length();
-		int i= 0;
+		int i = 0;
 		int index = 0;
-		List<String> res =new ArrayList<>();
-		while(i<leng) {
-			if(Character.isUpperCase(str.charAt(i))) {
-				if(i ==0) {
+		List<String> res = new ArrayList<>();
+		while (i < leng) {
+			if (Character.isUpperCase(str.charAt(i))) {
+				if (i == 0) {
 					continue;
 				}
 				res.add(str.substring(index, i).toLowerCase());
@@ -242,29 +242,29 @@ public class StrUtils {
 		res.add(str.substring(index).toLowerCase());
 		return String.join("_", res);
 	}
-	
+
 	/**
 	 * 判断一个字符串是否能转成数字
 	 */
 	public static boolean isNumeric(CharSequence cs) {
-        if (isBlank(cs)) {
-            return false;
-        }
-        final int sz = cs.length();
-        for (int i = 0; i < sz; i++) {
-            if (Character.isDigit(cs.charAt(i)) == false) {
-                return false;
-            }
-        }
-        return true;
-    }
-	
+		if (isBlank(cs)) {
+			return false;
+		}
+		final int sz = cs.length();
+		for (int i = 0; i < sz; i++) {
+			if (Character.isDigit(cs.charAt(i)) == false) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	/**
 	 * 将数字金额转换为中文金额,若有小数点只能到毫,即最多只能有3位小数,若多余3位则四舍五入
 	 */
 	public static String currency2Chs(String num) {
-		if(num.indexOf(".") > -1) {
-			
+		if (num.indexOf(".") > -1) {
+
 		}
 		return null;
 	}
