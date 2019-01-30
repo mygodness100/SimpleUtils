@@ -61,10 +61,6 @@ public class DBUtils {
 	public static Connection getConn(String driverClass, String url, String username,
 			String password) {
 		Connection conn = null;
-		System.out.println(driverClass);
-		System.out.println(url);
-		System.out.println(username);
-		System.out.println(password);
 		try {
 			Class.forName(driverClass);
 			conn = DriverManager.getConnection(url, username, password);
