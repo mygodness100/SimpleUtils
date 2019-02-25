@@ -93,7 +93,6 @@ public class Result implements Serializable {
 
 	/**
 	 * 将从数据库自定义sql语句取出的结果集的key转换为驼峰形式
-	 * 
 	 * @param data 下划线形式的结果集
 	 * @return 驼峰形式的结果集
 	 */
@@ -111,7 +110,6 @@ public class Result implements Serializable {
 
 	/**
 	 * 将从数据库自定义sql语句取出的结果集的key转换为驼峰形式
-	 * 
 	 * @param datas 下划线形式的结果集
 	 * @return 驼峰形式的结果集
 	 */
