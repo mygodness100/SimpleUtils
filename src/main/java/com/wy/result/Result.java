@@ -33,6 +33,10 @@ public class Result implements Serializable {
 		return ok(null);
 	}
 
+	public static Result msgOk(String msg) {
+		return ok(msg, null);
+	}
+
 	public static Result ok(Object t) {
 		return ok(null, t);
 	}
@@ -61,7 +65,7 @@ public class Result implements Serializable {
 		return result(code, message, null);
 	}
 
-	public static Result error(int code, Object t) {
+	public static Result error(Object t, int code) {
 		return result(code, "请求失败", t);
 	}
 
