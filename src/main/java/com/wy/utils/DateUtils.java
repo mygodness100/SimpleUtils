@@ -17,9 +17,20 @@ public final class DateUtils {
 
 	public static final String DEFAULT_PATTERN = DateEnum.DATETIME.getFormat();
 
-	public static SimpleDateFormat SDF = null;
+	private static ThreadLocal<SimpleDateFormat> threadLocal = new ThreadLocal<SimpleDateFormat>() {
+		@Override
+		protected SimpleDateFormat initialValue() {
+			return new SimpleDateFormat(DEFAULT_PATTERN);
+		}
+	};
 
 	private DateUtils() {
+	}
+	
+	private static SimpleDateFormat get(String pattern) {
+		SimpleDateFormat sdf = threadLocal.get();
+		sdf.applyPattern(pattern);
+		return sdf;
 	}
 
 	/**
@@ -124,10 +135,9 @@ public final class DateUtils {
 	public static String format(Date date, String pattern) {
 		date = date == null ? new Date() : date;
 		if (StrUtils.isBlank(pattern)) {
-			pattern = DEFAULT_PATTERN;
+			return threadLocal.get().format(date);
 		}
-		SDF = new SimpleDateFormat(pattern);
-		return SDF.format(date);
+		return get(pattern).format(date);
 	}
 
 	/**
@@ -152,8 +162,7 @@ public final class DateUtils {
 			if (StrUtils.isBlank(pattern, date)) {
 				return null;
 			}
-			SDF = new SimpleDateFormat(pattern);
-			return SDF.parse(date);
+			return get(pattern).parse(date);
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
