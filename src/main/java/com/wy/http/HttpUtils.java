@@ -117,6 +117,13 @@ public class HttpUtils {
 				}
 				br.close();
 				conn.disconnect();
+				// 上面的程序等同于apache.common.io的ioutils.toString(in)方法
+				// 若上面的方法发生ioexception : premature eof,则使用下面程序
+				// Scanner scan = new
+				// Scanner(conn.getInputStream(),StandardCharsets.UTF_8.displayName());
+				// while(scan.hasNextLine()) {
+				// sb.append(scan.nextLine());
+				// }
 				return JSON.parseObject(sb.toString());
 			}
 		} catch (Exception e) {
