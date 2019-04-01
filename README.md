@@ -72,3 +72,9 @@
     没有param,也没有return这些系统已经定义好的标签,打包报错.自定义的标签也报错
     14.gpg加密插件,需要在gpg的官网上下载,并且在本地生成一个公钥,之后上传到服务器,直接用图形界面操作即可
     15.最终发布命令,进入到当前文件夹:mvn clean deploy -P release -Dgpg.passphrase=密码
+
+### 在本地搭建maven的私服仓库
+
+* 使用nexus sonatype,官网上下载压缩包,解压后有2个文件夹:一个是nexus的运行程序,配置文件等;另外一个文件夹则是nexus从远程仓库下载到本地的jar包存放地址.
+* 配置nexus的环境变量,使用前需要先修改bin/jsw/conf/wrapper.confg文件,修改wrapper.java.command的值为当前系统jdk的安装目录,需要到bin这一级,并且是绝对地址,之后在控制台使用命令:nexus install安装nexus
+* 安装完之后控制台:nexus start启动nexus.启动之后可在控制台打开localhost:8081,用户名密码为admin,admin123

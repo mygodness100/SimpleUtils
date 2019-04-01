@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,15 +14,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import com.wy.enums.TipsEnum;
 import com.wy.result.ResultException;
 import com.wy.utils.ClassUtils;
 import com.wy.utils.ListUtils;
@@ -315,65 +319,150 @@ public class ExcelUtils {
 	}
 
 	/**
-	 * 将excel表中的数据读取到流或数据库或内存中
-	 * 
-	 * @param excel 数据源
-	 * @param path 写入文件路径
+	 * 读取excel表格数据,默认表格中第一行是字段名或key值.且可以使用
+	 * @param path 需要读取的excel文件路径
+	 * @return 结果集
 	 */
-	public List<Map<String, Object>> readExcel(String path) {
-		List<Map<String, Object>> res = new ArrayList<>();
+	public static List<Map<String, Object>> readExcel(String path) {
 		try (Workbook wb = createIsWorkbook(path);) {
+			List<Map<String, Object>> res = new ArrayList<>();
 			int sheets = wb.getNumberOfSheets();
 			for (int i = 0; i < sheets; i++) {
-				List<Map<String, Object>> handlerRow = handlerRow(wb.getSheetAt(i));
+				List<Map<String, Object>> handlerRow = handlerRow(wb.getSheetAt(i), true, null, 0,
+						0);
 				if (handlerRow != null) {
 					res.addAll(handlerRow);
 				}
 			}
+			return res;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return res;
+		return null;
 	}
 
 	/**
-	 * excel必须有标题,若没有则将不会报错
+	 * 读取excel表格数据,默认表格中第一行是字段名或key值.且可以使用
+	 * @param is 输入流
+	 * @return 结果集
 	 */
-	private List<Map<String, Object>> handlerRow(Sheet sheet) {
+	public static List<Map<String, Object>> readExcel(InputStream is) {
+		return readExcel(is, true, null);
+	}
+
+	/**
+	 * 读取excel中的数据,从excel中的第0行第0列开始读取
+	 * @param is 输入流
+	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
+	 * @param titles
+	 *            当firstUse为true时,该值传null.若是false,则该值为字段名或key值的集合,但是第一行数据仍不使用
+	 * @return 结果集
+	 */
+	public static List<Map<String, Object>> readExcel(InputStream is, boolean firstUse,
+			List<String> titles) {
+		return readExcel(is, firstUse, titles, 0);
+	}
+
+	/**
+	 * 读取excel中的数据,从excel表格的第beginRow行第0列开始读取
+	 * @param is 输入流
+	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
+	 * @param titles
+	 *            当firstUse为true时,该值传null.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param beginRow 从第几行开始读取excel
+	 * @return 结果集
+	 */
+	public static List<Map<String, Object>> readExcel(InputStream is, boolean firstUse,
+			List<String> titles, int beginRow) {
+		return readExcel(is, firstUse, titles, beginRow, 0);
+	}
+
+	/**
+	 * 读取excel中的数据
+	 * @param is 输入流
+	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
+	 * @param titles
+	 *            当firstUse为true时,该值传null.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param beginRow 从第几行开始读取excel
+	 * @param beginCol 从第几列就开始读取excel
+	 * @return 结果集
+	 */
+	public static List<Map<String, Object>> readExcel(InputStream is, boolean firstUse,
+			List<String> titles, int beginRow, int beginCol) {
+		try (Workbook wb = WorkbookFactory.create(is);) {
+			int sheets = wb.getNumberOfSheets();
+			List<Map<String, Object>> res = new ArrayList<>();
+			for (int i = 0; i < sheets; i++) {
+				List<Map<String, Object>> row = handlerRow(wb.getSheetAt(i), firstUse, titles,
+						beginRow, beginCol);
+				if (ListUtils.isNotBlank(row)) {
+					res.addAll(row);
+				}
+			}
+			return res;
+		} catch (EncryptedDocumentException | InvalidFormatException | IOException e) {
+			e.printStackTrace();
+			log.error(TipsEnum.TIP_LOG_ERROR.getMsg("上传excel文件解析失败->" + e.getMessage()));
+		}
+		return null;
+	}
+
+	/**
+	 * 读取excel中的数据
+	 * @param sheet 每一个sheet页中的数据
+	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
+	 * @param titles
+	 *            当firstUse为true时,该值传null.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param begin 从第一行的字段开始算起,从第几行开始读取数据
+	 * @return 结果集
+	 */
+	private static List<Map<String, Object>> handlerRow(Sheet sheet, boolean firstUse,
+			List<String> titles, int beginRow, int beginCol) {
 		int rows = sheet.getLastRowNum();
 		if (rows < 2) {
 			return null;
 		}
-		// 获取第一行的数据库字段对应的中文名,只拿税号和验证码
-		Row first = sheet.getRow(0);
+		Row first = sheet.getRow(beginRow);
 		short cellNum = first.getLastCellNum();
 		if (cellNum < 1) {
 			return null;
 		}
 		List<Map<String, Object>> res = new ArrayList<>();
-		for (int j = 1; j < rows + 1; j++) {
+		for (int j = beginRow + 1; j < rows + 1; j++) {
 			Map<String, Object> rowData = new HashMap<>();
-			for (int k = 0; k < cellNum; k++) {
-				String cellVal = handlerCell(sheet.getRow(j).getCell(k).getCellTypeEnum(),
-						sheet.getRow(j).getCell(k));
-				rowData.put(first.getCell(k).getStringCellValue(), cellVal);
+			for (int k = beginCol; k < cellNum; k++) {
+				Object cellVal = handlerCell(sheet.getRow(j).getCell(k));
+				if (firstUse) {
+					rowData.put(first.getCell(k).getStringCellValue(), cellVal);
+				} else {
+					if (ListUtils.isBlank(titles)) {
+						rowData.put("column" + k, cellVal);
+					} else {
+						rowData.put(titles.get(k), cellVal);
+					}
+				}
 			}
 			res.add(rowData);
 		}
 		return res;
 	}
 
-	private String handlerCell(CellType cellType, Cell cell) {
-		switch (cellType) {
+	private static Object handlerCell(Cell cell) {
+		if (Objects.isNull(cell)) {
+			return null;
+		}
+		switch (cell.getCellTypeEnum()) {
 			case BLANK:
 			case _NONE:
 				return null;
 			case BOOLEAN:
-				return String.valueOf(cell.getBooleanCellValue());
+				return cell.getBooleanCellValue();
 			case NUMERIC:
-				return String.valueOf((long) cell.getNumericCellValue());
+				return cell.getNumericCellValue();
 			case STRING:
 				return cell.getStringCellValue();
+			case FORMULA:
+				return cell.getRichStringCellValue().getString();
 			default:
 				return null;
 		}
