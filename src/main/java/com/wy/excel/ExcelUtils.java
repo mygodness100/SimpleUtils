@@ -438,7 +438,7 @@ public class ExcelUtils {
 					if (ListUtils.isBlank(titles)) {
 						rowData.put("column" + k, cellVal);
 					} else {
-						rowData.put(titles.get(k), cellVal);
+						rowData.put(titles.get(k - beginCol), cellVal);
 					}
 				}
 			}

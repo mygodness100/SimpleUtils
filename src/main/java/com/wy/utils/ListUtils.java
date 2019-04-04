@@ -3,7 +3,9 @@ package com.wy.utils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class ListUtils {
 
@@ -98,8 +100,32 @@ public final class ListUtils {
 		}
 		return -1;
 	}
-	
-	
+
+	/**
+	 * 将集合中的数据按照某个key的值进行分类
+	 * @param datas 数据集
+	 * @param column 进行的分类的key
+	 * @return 结果集
+	 */
+	public static Map<Object, List<Map<String, Object>>> varity(List<Map<String, Object>> datas,
+			String column) {
+		if (isBlank(datas)) {
+			return null;
+		}
+		Map<Object, List<Map<String, Object>>> res = new HashMap<>();
+		List<Map<String, Object>> tempData;
+		for (Map<String, Object> data : datas) {
+			tempData = res.get(data.get(column));
+			if (isBlank(tempData)) {
+				tempData = new ArrayList<>();
+				tempData.add(data);
+				res.put(data.get(column), tempData);
+			} else {
+				tempData.add(data);
+			}
+		}
+		return res;
+	}
 
 	public static <T> ListBuilder<T> getBuilder() {
 		return new ListBuilder<T>();
