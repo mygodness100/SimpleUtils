@@ -7,6 +7,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MapUtils {
@@ -22,8 +23,7 @@ public class MapUtils {
 		List<String> list = new ArrayList<>();
 		for (String key : params.keySet()) {
 			try {
-				list.add(URLEncoder.encode(key + "=" + params.get(key),
-						StandardCharsets.UTF_8.displayName()));
+				list.add(key + "=" + URLEncoder.encode(Objects.toString(params.get(key)), charset));
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			}
