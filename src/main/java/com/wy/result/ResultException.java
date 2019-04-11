@@ -12,7 +12,11 @@ public class ResultException extends RuntimeException {
 	}
 
 	public ResultException() {
-		this(TipEnum.TIP_EX_COMMON.getErrCode(), TipEnum.TIP_EX_COMMON.getErrMsg(), null);
+		this(TipEnum.TIP_EX_COMMON);
+	}
+
+	public ResultException(TipEnum tipEnum) {
+		this(tipEnum.getCode(), tipEnum.getMsg(), null);
 	}
 
 	public ResultException(String message) {
@@ -23,7 +27,7 @@ public class ResultException extends RuntimeException {
 		this(code, message, null);
 	}
 
-	public ResultException(int code,Throwable ex) {
+	public ResultException(int code, Throwable ex) {
 		this(code, ex.getMessage(), ex);
 	}
 

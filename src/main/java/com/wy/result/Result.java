@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.wy.enums.TipEnum;
 import com.wy.utils.MapUtils;
 import com.wy.utils.StrUtils;
 
@@ -75,6 +76,10 @@ public class Result implements Serializable {
 
 	public static Result result(Object t) {
 		return Objects.isNull(t) ? error() : ok(t);
+	}
+
+	public static Result result(TipEnum tip) {
+		return result(tip.getCode(), tip.getMsg(), null);
 	}
 
 	public static Result result(int code, String message, Object t) {

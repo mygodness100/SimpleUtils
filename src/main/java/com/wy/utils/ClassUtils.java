@@ -43,6 +43,18 @@ public class ClassUtils {
 	}
 
 	/**
+	 * 判断是否为一个整数,byte,short,int,long
+	 */
+	public static boolean isIntegral(Class<?> clazz) {
+		if (byte.class == clazz || Byte.class == clazz || short.class == clazz
+				|| Short.class == clazz || int.class == clazz || Integer.class == clazz
+				|| long.class == clazz || Long.class == clazz) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * 判断是否为基础类型和字符串,字符串不属于基本类型
 	 */
 	public static boolean isPrimitives(Class<?> clazz) {
