@@ -9,6 +9,8 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,6 +31,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import javax.imageio.ImageIO;
 
@@ -36,10 +40,9 @@ import com.wy.utils.StrUtils;
 
 /**
  * 文件帮助类,未使用
- * 
  * @author 万杨
  */
-public final class FileUtils {
+public final class IOUtils {
 
 	/**
 	 * 文件后缀类型归类
@@ -50,7 +53,8 @@ public final class FileUtils {
 			put(0, new ArrayList<>(Arrays.asList(".BMP", ".PNG", ".GIF", ".JPG", ".JPEG")));
 			put(1, new ArrayList<>(Arrays.asList(".AMR", ".MP3", ".WMA", ".WAV", ".MID")));
 			put(2, new ArrayList<>(Arrays.asList(".MP4", ".AVI", ".3GP", ".RM", ".RMVB", ".WMV")));
-			put(3, new ArrayList<>(Arrays.asList(".TXT", ".JSON", ".XML", ".DOC", ".XLS", ".XLSX")));
+			put(3, new ArrayList<>(
+					Arrays.asList(".TXT", ".JSON", ".XML", ".DOC", ".XLS", ".XLSX")));
 		}
 	};
 
@@ -119,11 +123,8 @@ public final class FileUtils {
 
 	/**
 	 * 将一个文件移动到另外一个地方,不删除源文件,删除已经存在于目标地址的文件
-	 * 
-	 * @param from
-	 *            源文件,需要进行移动的文件
-	 * @param to
-	 *            目标地址
+	 * @param from 源文件,需要进行移动的文件
+	 * @param to 目标地址
 	 */
 	public static final void moveFileDT(File from, File to) {
 		moveFile(from, to, true, true);
@@ -131,11 +132,8 @@ public final class FileUtils {
 
 	/**
 	 * 将一个文件移动到另外一个地方,删除或移动源文件,删除已经存在于目标地址的文件
-	 * 
-	 * @param from
-	 *            源文件,需要进行移动的文件
-	 * @param to
-	 *            目标地址
+	 * @param from 源文件,需要进行移动的文件
+	 * @param to 目标地址
 	 */
 	public static final void moveFileDFDT(File from, File to) {
 		moveFile(from, to, true, false);
@@ -143,15 +141,10 @@ public final class FileUtils {
 
 	/**
 	 * 移动文件从一个地方到另一个地方,若目标文件已经存在,判断是否删除之后再移动
-	 * 
-	 * @param from
-	 *            源文件,需要进行移动的文件
-	 * @param to
-	 *            目标地址
-	 * @param deleteTo
-	 *            若目标文件存在,是否删除,true删除
-	 * @param isCopy
-	 *            true复制,false剪切
+	 * @param from 源文件,需要进行移动的文件
+	 * @param to 目标地址
+	 * @param deleteTo 若目标文件存在,是否删除,true删除
+	 * @param isCopy true复制,false剪切
 	 */
 	public static final void moveFile(File from, File to, boolean deleteTo, boolean isCopy) {
 		if (to.exists()) {
@@ -175,13 +168,9 @@ public final class FileUtils {
 
 	/**
 	 * 直接用流移动文件
-	 * 
-	 * @param from
-	 *            源文件
-	 * @param to
-	 *            目标地址
-	 * @param isCopy
-	 *            true复制,false剪切
+	 * @param from 源文件
+	 * @param to 目标地址
+	 * @param isCopy true复制,false剪切
 	 */
 	public static final void moveFile(File from, File to, boolean isCopy) {
 		InputStream is = null;
@@ -208,15 +197,14 @@ public final class FileUtils {
 
 	/**
 	 * 生成缩略图
-	 * 
 	 * @param originalFile
 	 * @param thumbnailFile
 	 * @param thumbWidth
 	 * @param thumbHeight
 	 * @param quality
 	 */
-	public static void transform(String originalFile, String thumbnailFile, int thumbWidth, int thumbHeight,
-			int quality) throws Exception {
+	public static void transform(String originalFile, String thumbnailFile, int thumbWidth,
+			int thumbHeight, int quality) throws Exception {
 		Image image = javax.imageio.ImageIO.read(new File(originalFile));
 
 		double thumbRatio = (double) thumbWidth / (double) thumbHeight;
@@ -238,7 +226,8 @@ public final class FileUtils {
 			thumbHeight = imageHeight;
 		}
 
-		BufferedImage thumbImage = new BufferedImage(thumbWidth, thumbHeight, BufferedImage.TYPE_INT_RGB);
+		BufferedImage thumbImage = new BufferedImage(thumbWidth, thumbHeight,
+				BufferedImage.TYPE_INT_RGB);
 		Graphics2D graphics2D = thumbImage.createGraphics();
 		graphics2D.setBackground(Color.WHITE);
 		graphics2D.setPaint(Color.WHITE);
@@ -262,10 +251,10 @@ public final class FileUtils {
 			if (listFiles != null && listFiles.length > 0) {
 				for (File childFile : listFiles) {
 					if (childFile.isFile()) {
-						String fileName = childFile.getParent() + File.separator
-								+ childFile.getName()
-										.replace("[YYDM-11FANS][Gundam_Seed-Destiny-HD-ReMaster]", "")
-										.replace("[BDRIP][X264-10bit_AAC][720P]", "");
+						String fileName = childFile.getParent() + File.separator + childFile
+								.getName()
+								.replace("[YYDM-11FANS][Gundam_Seed-Destiny-HD-ReMaster]", "")
+								.replace("[BDRIP][X264-10bit_AAC][720P]", "");
 						childFile.renameTo(new File(fileName));
 					}
 				}
@@ -313,7 +302,6 @@ public final class FileUtils {
 
 	/**
 	 * 利用流来复制文件
-	 * 
 	 * @param src
 	 * @param des
 	 */
@@ -354,7 +342,6 @@ public final class FileUtils {
 
 	/**
 	 * 创建文件夹,多层目录
-	 * 
 	 * @param file
 	 */
 	public static boolean mkdirs(File file) {
@@ -505,7 +492,6 @@ public final class FileUtils {
 
 	/**
 	 * url去重
-	 * 
 	 * @param args
 	 */
 	public static void main(String[] args) {
@@ -587,5 +573,44 @@ public final class FileUtils {
 				}
 			}
 		}
+	}
+
+	/**
+	 * 解压缩
+	 * @param source 源数据,需要解压的数据
+	 * @return 解压后的数据,恢复的数据
+	 */
+	public static byte[] unzip(byte[] source) {
+		try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+				ByteArrayInputStream in = new ByteArrayInputStream(source);
+				GZIPInputStream zipIn = new GZIPInputStream(in);) {
+			byte[] temp = new byte[1024];
+			int length = 0;
+			while ((length = zipIn.read(temp, 0, temp.length)) != -1) {
+				out.write(temp, 0, length);
+			}
+			return out.toByteArray();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 压缩
+	 * @param source 源数据,需要压缩的数据
+	 * @return 压缩后的数据
+	 */
+	public static byte[] zip(byte[] source) {
+		try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+				GZIPOutputStream zipOut = new GZIPOutputStream(out);) {
+			// 将压缩信息写入到内存, 写入的过程会实现解压
+			zipOut.write(source);
+			zipOut.finish();
+			return out.toByteArray();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

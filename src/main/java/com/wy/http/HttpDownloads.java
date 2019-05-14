@@ -6,7 +6,7 @@ import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import com.wy.io.FileUtils;
+import com.wy.io.IOUtils;
 
 /**
  * 下载文件类
@@ -32,7 +32,7 @@ public class HttpDownloads {
 	 */
 	public static void download(String downloadAddress, File desFile, int threadCount, String method) {
 		try {
-			if(!FileUtils.fileExists(desFile)) {
+			if(!IOUtils.fileExists(desFile)) {
 				throw new Exception("下载失败,文件不存在或新建文件失败");
 			}
 			// 限制最大线程数

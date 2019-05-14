@@ -164,7 +164,7 @@ public class ImageUtils {
 			} catch (IOException e) {
 				e.printStackTrace();
 			} finally {
-				FileUtils.close(fos);
+				IOUtils.close(fos);
 			}
 		} else {
 			return false;

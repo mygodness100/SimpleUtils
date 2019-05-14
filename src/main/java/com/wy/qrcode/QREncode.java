@@ -26,7 +26,7 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import com.wy.crypto.CryptoUtils;
-import com.wy.io.FileUtils;
+import com.wy.io.IOUtils;
 import com.wy.utils.StrUtils;
 
 /**
@@ -73,7 +73,7 @@ public class QREncode {
 	public static void encode(String content, String desPath, String imgPath, boolean isCompress) {
 		try {
 			BufferedImage image = createImage(content, imgPath, isCompress);
-			FileUtils.mkdirs(desPath);
+			IOUtils.mkdirs(desPath);
 			ImageIO.write(image, IMG_SUFFIX,
 					new File(desPath + File.separator + String.format(IMG_DES, CryptoUtils.UUID())));
 		} catch (Exception e) {
