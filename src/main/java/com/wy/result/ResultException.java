@@ -19,11 +19,11 @@ public class ResultException extends RuntimeException {
 		this(tipEnum.getCode(), tipEnum.getMsg(), null);
 	}
 
-	public ResultException(String message) {
+	public ResultException(CharSequence message) {
 		this(0, message);
 	}
 
-	public ResultException(int code, String message) {
+	public ResultException(int code, CharSequence message) {
 		this(code, message, null);
 	}
 
@@ -31,12 +31,12 @@ public class ResultException extends RuntimeException {
 		this(code, ex.getMessage(), ex);
 	}
 
-	public ResultException(String message, Throwable ex) {
+	public ResultException(CharSequence message, Throwable ex) {
 		this(0, message, ex);
 	}
 
-	public ResultException(int code, String message, Throwable ex) {
-		super(message, ex);
+	public ResultException(int code, CharSequence message, Throwable ex) {
+		super(message.toString(), ex);
 		this.code = code;
 	}
 }
