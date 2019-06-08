@@ -12,7 +12,7 @@ public class ResultException extends RuntimeException {
 	}
 
 	public ResultException() {
-		this(TipEnum.TIP_EX_COMMON);
+		this(TipEnum.TIP_SYS_ERROR);
 	}
 
 	public ResultException(TipEnum tipEnum) {

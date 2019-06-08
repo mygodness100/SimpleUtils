@@ -36,7 +36,7 @@ public class Result implements Serializable {
 	}
 
 	public static Result ok(Object t) {
-		return ok(Internation.getStr("request_success"), t);
+		return ok(Internation.getStr("msg_success"), t);
 	}
 
 	public static Result ok(String message, Object t) {
@@ -44,7 +44,7 @@ public class Result implements Serializable {
 	}
 
 	public static Result ok(int code, Object t) {
-		return result(code, Internation.getStr("request_success"), t);
+		return result(code, Internation.getStr("msg_success"), t);
 	}
 
 	public static Result error() {
@@ -64,7 +64,7 @@ public class Result implements Serializable {
 	}
 
 	public static Result error(Object t, int code) {
-		return result(code, Internation.getStr("request_fail"), t);
+		return result(code, Internation.getStr("msg_fail"), t);
 	}
 
 	public static Result result(boolean flag) {
@@ -82,8 +82,8 @@ public class Result implements Serializable {
 	public static Result result(int code, String message, Object t) {
 		return Result.builder().data(t).code(code)
 				.msg(StrUtils.isBlank(message)
-						? (code > 0 ? Internation.getStr("request_success")
-								: Internation.getStr("request_fail"))
+						? (code > 0 ? Internation.getStr("msg_success")
+								: Internation.getStr("msg_fail"))
 						: message)
 				.build();
 	}
@@ -97,8 +97,8 @@ public class Result implements Serializable {
 			int total) {
 		return Result.builder()
 				.msg(StrUtils.isBlank(message)
-						? (code > 0 ? Internation.getStr("request_success")
-								: Internation.getStr("request_fail"))
+						? (code > 0 ? Internation.getStr("msg_success")
+								: Internation.getStr("msg_fail"))
 						: message)
 				.code(code).data(t).pageIndex(pageIndex).pageSize(pageSize).total(total).build();
 	}
