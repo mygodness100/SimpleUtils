@@ -1,42 +1,42 @@
 package com.wy.enums;
 
+import com.wy.common.Internation;
+
 public enum TipEnum {
 
-	UNKNOWN(-1, "unknown error"),
-	FAIL(0, "request fail"),
-	SUCCESS(1, "request success"),
+	UNKNOWN(-1, "msg_unknown"),
+	FAIL(0, "msg_fail"),
+	SUCCESS(1, "msg_success"),
 
-	AUTH_TIME_EMPTY(10000, "timestamp can not be null"),
-	AUTH_TIME_ERROR(10001, "timestamp error"),
-	AUTH_EMPTY(10002, "validate message is empty"),
-	AUTH_FAIL(10003, "validate message is fail"),
+	AUTH_TIME_EMPTY(10000, "msg_timestamp_null"),
+	AUTH_TIME_ERROR(10001, "msg_timestamp_error"),
+	AUTH_EMPTY(10002, "msg_valid_empty"),
+	AUTH_FAIL(10003, "msg_valid_fail"),
 
-	TIP_LOGIN(-10000, "登录失败,用户名或密码错误,请重试"),
-	TIP_LOGIN_USERNAME(-9999, "用户不存在"),
-	TIP_LOGIN_PASSWORD(-9998, "密码错误"),
-	TIP_LOGIN_USERPWD(-9997, "用户名或密码错误"),
-	TIP_LOGIN_TIMEOUT(-9996, "登录超时,请重新登录!"),
+	TIP_LOGIN(-10000, "msg_login_fail"),
+	TIP_LOGIN_USERNAME(-9999, "msg_login_fail_username"),
+	TIP_LOGIN_PASSWORD(-9998, "msg_login_fail_password"),
+	TIP_LOGIN_TIMEOUT(-9997, "msg_login_fail_timeout"),
 
-	TIP_ROLE_ERROR(-9000, "该角色不存在或已经删除!"),
+	TIP_ROLE_ERROR(-9000, "msg_role_not_exist"),
 
-	TIP_PARAM(-8000, "参数错误"),
-	TIP_PARAM_EMPTY(-7999, "参数不能为空"),
+	TIP_PARAM(-8000, "msg_param_error"),
+	TIP_PARAM_EMPTY(-7999, "msg_param_empty"),
 
-	TIP_DB_CREATE(-7000, "新增失败"),
-	TIP_DB_DELETE(-6999, "删除失败"),
-	TIP_DB_UPDATE(-6998, "更新失败"),
-	TIP_DB_SELECT(-6997, "查询失败"),
+	TIP_DB_CREATE(-7000, "msg_db_create_fail"),
+	TIP_DB_DELETE(-6999, "msg_db_delete_fail"),
+	TIP_DB_MODIFY(-6998, "msg_db_modify_fail"),
+	TIP_DB_QUERY(-6997, "msg_db_query_fail"),
 
-	TIP_EX_COMMON(-1000, "系统内部错误,请联系管理员"),
-
-	TIP_SYS_SERVICE(-999, "系统维护中,请耐心等待");
+	TIP_SYS_ERROR(-1000, "msg_sys_error"),
+	TIP_SYS_MAINTAIN(-999, "msg_sys_maintain");
 
 	private Integer code;
-	private String msg;
+	private String key;
 
-	TipEnum(Integer code, String msg) {
+	TipEnum(Integer code, String key) {
 		this.code = code;
-		this.msg = msg;
+		this.key = key;
 	}
 
 	public int getCode() {
@@ -44,6 +44,6 @@ public enum TipEnum {
 	}
 
 	public String getMsg() {
-		return msg;
+		return Internation.getStr(key);
 	}
 }

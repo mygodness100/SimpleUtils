@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.wy.common.Internation;
 import com.wy.enums.TipEnum;
 import com.wy.utils.MapUtils;
 import com.wy.utils.StrUtils;
@@ -24,7 +25,7 @@ public class Result implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private int code;
-	private String message;
+	private String msg;
 	private Object data;
 	private int pageIndex;
 	private int pageSize;
@@ -34,12 +35,8 @@ public class Result implements Serializable {
 		return ok(null);
 	}
 
-	public static Result msgOk(String msg) {
-		return ok(msg, null);
-	}
-
 	public static Result ok(Object t) {
-		return ok(null, t);
+		return ok(Internation.getStr("msg_success"), t);
 	}
 
 	public static Result ok(String message, Object t) {
@@ -47,7 +44,7 @@ public class Result implements Serializable {
 	}
 
 	public static Result ok(int code, Object t) {
-		return result(code, "请求成功", t);
+		return result(code, Internation.getStr("msg_success"), t);
 	}
 
 	public static Result error() {
@@ -67,7 +64,7 @@ public class Result implements Serializable {
 	}
 
 	public static Result error(Object t, int code) {
-		return result(code, "请求失败", t);
+		return result(code, Internation.getStr("msg_fail"), t);
 	}
 
 	public static Result result(boolean flag) {
@@ -84,7 +81,10 @@ public class Result implements Serializable {
 
 	public static Result result(int code, String message, Object t) {
 		return Result.builder().data(t).code(code)
-				.message(StrUtils.isBlank(message) ? (code > 0 ? "请求成功" : "请求失败") : message)
+				.msg(StrUtils.isBlank(message)
+						? (code > 0 ? Internation.getStr("msg_success")
+								: Internation.getStr("msg_fail"))
+						: message)
 				.build();
 	}
 
@@ -96,7 +96,10 @@ public class Result implements Serializable {
 	public static Result page(int code, String message, Object t, int pageIndex, int pageSize,
 			int total) {
 		return Result.builder()
-				.message(StrUtils.isBlank(message) ? (code > 0 ? "请求成功" : "请求失败") : message)
+				.msg(StrUtils.isBlank(message)
+						? (code > 0 ? Internation.getStr("msg_success")
+								: Internation.getStr("msg_fail"))
+						: message)
 				.code(code).data(t).pageIndex(pageIndex).pageSize(pageSize).total(total).build();
 	}
 

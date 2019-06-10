@@ -7,8 +7,8 @@ import java.util.List;
 import com.wy.utils.StrUtils;
 
 /**
- * 写一个弱密码的判断类
- * 
+ * @instruction 写一个弱密码的判断类
+ * @instruction 将加密的工具写成一个策略模式或工厂模式
  * @author 万杨
  */
 public class WeakPassword {
