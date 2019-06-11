@@ -17,6 +17,8 @@ public enum TipEnum {
 	TIP_LOGIN_USERNAME(-9999, "msg_login_fail_username"),
 	TIP_LOGIN_PASSWORD(-9998, "msg_login_fail_password"),
 	TIP_LOGIN_TIMEOUT(-9997, "msg_login_fail_timeout"),
+	TIP_USER_NOT_EXIST(-9996,"msg_user_not_exist"),
+	TIP_USER_NOT_DISTRIBUTE_ROLE(-9995,"msg_user_not_distribute_role"),
 
 	TIP_ROLE_ERROR(-9000, "msg_role_not_exist"),
 
