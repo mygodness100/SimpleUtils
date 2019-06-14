@@ -26,6 +26,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import com.wy.result.ResultException;
 import com.wy.utils.HexUtils;
 import com.wy.utils.StrUtils;
 
@@ -81,6 +82,29 @@ public class CryptoUtils {
 		}
 	}
 
+	public static String AESSimpleEncrypt(String encodeRules, String content) {
+		if (StrUtils.isBlank(encodeRules, content)) {
+			throw new ResultException("加密内容或密钥不能为空");
+		}
+		if (encodeRules.length() % 16 != 0) {
+			throw new ResultException("密钥长度必须是16的倍数位");
+		}
+		return HexUtils.bytes2HexStr(AES(content.getBytes(StandardCharsets.UTF_8),
+				encodeRules.getBytes(StandardCharsets.UTF_8), Cipher.ENCRYPT_MODE));
+	}
+
+	public static String AESSimpleDecrypt(String encodeRules, String content) {
+		if (StrUtils.isBlank(encodeRules, content)) {
+			throw new ResultException("加密内容或密钥不能为空");
+		}
+		if (encodeRules.length() % 16 != 0) {
+			throw new ResultException("密钥长度必须是16的倍数位");
+		}
+		return new String(AES(HexUtils.hexStr2Bytes(content),
+				encodeRules.getBytes(StandardCharsets.UTF_8), Cipher.DECRYPT_MODE),
+				StandardCharsets.UTF_8);
+	}
+
 	/**
 	 * aes加密,若使用des加密,可将密钥生成器的随机源改为56
 	 * 
@@ -128,21 +152,31 @@ public class CryptoUtils {
 			SecretKey original_key = keygen.generateKey();
 			// 4.获得原始对称密钥的字节数组
 			byte[] raw = original_key.getEncoded();
-			// 5.根据字节数组生成AES密钥
-			SecretKey key = new SecretKeySpec(raw, "AES");
+			return AES(content, raw, mode);
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private static final byte[] AES(byte[] content, byte[] raw, int mode) {
+		// 5.根据字节数组生成AES密钥
+		SecretKey key = new SecretKeySpec(raw, "AES");
+		try {
 			// 6.根据指定算法AES生成密码器
-			Cipher cip = Cipher.getInstance("AES");
+			Cipher cip = Cipher.getInstance("AES/ECB/PKCS5Padding");
 			// 7.初始化密码器,第一个参数为加密(Encrypt_mode)或解密(Decrypt_mode),第二个参数为使用的KEY
 			cip.init(mode, key);
 			// 不要使用base64加密,会在前端传输中少字符数
 			// 9.根据密码器的初始化方式--加密/解密
 			return cip.doFinal(content);
-		} catch (Exception e) {
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException
+				| IllegalBlockSizeException | BadPaddingException e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
-	
+
 	/**
 	 * 从字符串中加载公钥
 	 * @param publicKey 公钥字符串
