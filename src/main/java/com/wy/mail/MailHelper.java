@@ -31,7 +31,7 @@ public class MailHelper {
 	/**
 	 * 邮件发送参数校验
 	 */
-	public static Result sendMail(final Mail mail) {
+	public static <T> Result<T> sendMail(final Mail mail) {
 		String error = Mail.checkParam(mail);
 		if (StrUtils.isNotBlank(error)) {
 			return Result.error(error);
@@ -71,7 +71,7 @@ public class MailHelper {
 			// multipart可以包含多个multibodypart
 			// 设置内容,html内容,创建一个容器类,可不传参数,related标识有内嵌,mixed标识有附件
 			Multipart part = new MimeMultipart("mixed");
-			if(StrUtils.isNotBlank(mail.getContent())) {				
+			if (StrUtils.isNotBlank(mail.getContent())) {
 				// 创建一个包含html内容的容器
 				MimeBodyPart html = new MimeBodyPart();
 				// 设置html邮件的普通内容

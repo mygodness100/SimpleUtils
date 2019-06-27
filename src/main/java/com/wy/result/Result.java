@@ -21,86 +21,84 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @Builder
-public class Result implements Serializable {
+public class Result<T> implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private int code;
 	private String msg;
-	private Object data;
+	private T data;
 	private int pageIndex;
 	private int pageSize;
 	private int total;
 
-	public static Result ok() {
+	public static <T> Result<T> ok() {
 		return ok(null);
 	}
 
-	public static Result ok(Object t) {
+	public static <T> Result<T> ok(T t) {
 		return ok(Internation.getStr("msg_success"), t);
 	}
 
-	public static Result ok(String message, Object t) {
-		return result(1, message, t);
+	public static <T> Result<T> ok(String msg, T t) {
+		return result(1, msg, t);
 	}
 
-	public static Result ok(int code, Object t) {
+	public static <T> Result<T> ok(int code, T t) {
 		return result(code, Internation.getStr("msg_success"), t);
 	}
 
-	public static Result error() {
+	public static <T> Result<T> error() {
 		return error(null);
 	}
 
-	public static Result error(String message) {
-		return error(message, null);
+	public static <T> Result<T> error(String msg) {
+		return error(0, msg);
 	}
 
-	public static Result error(String message, Object t) {
-		return result(0, message, t);
+	public static <T> Result<T> error(int code, String msg) {
+		return error(code, msg, null);
 	}
 
-	public static Result error(int code, String message) {
-		return result(code, message, null);
+	public static <T> Result<T> error(int code, T t) {
+		return error(code, null, t);
 	}
 
-	public static Result error(Object t, int code) {
-		return result(code, Internation.getStr("msg_fail"), t);
+	public static <T> Result<T> error(int code, String msg, T t) {
+		return result(code, msg, t);
 	}
 
-	public static Result result(boolean flag) {
+	public static <T> Result<T> result(boolean flag) {
 		return flag ? ok() : error();
 	}
 
-	public static Result result(Object t) {
+	public static <T> Result<T> result(T t) {
 		return Objects.isNull(t) ? error() : ok(t);
 	}
 
-	public static Result result(TipEnum tip) {
-		return result(tip.getCode(), tip.getMsg(), null);
+	public static <T> Result<T> result(TipEnum tip) {
+		return result(tip, null);
 	}
 
-	public static Result result(int code, String message, Object t) {
-		return Result.builder().data(t).code(code)
-				.msg(StrUtils.isBlank(message)
-						? (code > 0 ? Internation.getStr("msg_success")
-								: Internation.getStr("msg_fail"))
-						: message)
-				.build();
+	public static <T> Result<T> result(TipEnum tip, T t) {
+		return result(tip.getCode(), tip.getMsg(), t);
 	}
 
-	public static Result page(Object t, int pageIndex, int pageSize, int total) {
+	public static <T> Result<T> result(int code, String msg, T t) {
+		return Result.<T>builder().code(code).msg(StrUtils.isBlank(msg)
+				? (code > 0 ? Internation.getStr("msg_success") : Internation.getStr("msg_fail"))
+				: msg).data(t).build();
+	}
+
+	public static <T> Result<T> page(T t, int pageIndex, int pageSize, int total) {
 		return Objects.isNull(t) ? page(0, null, null, 0, 0, 0)
 				: page(1, null, t, pageIndex, pageSize, total);
 	}
 
-	public static Result page(int code, String message, Object t, int pageIndex, int pageSize,
+	public static <T> Result<T> page(int code, String msg, T t, int pageIndex, int pageSize,
 			int total) {
-		return Result.builder()
-				.msg(StrUtils.isBlank(message)
-						? (code > 0 ? Internation.getStr("msg_success")
-								: Internation.getStr("msg_fail"))
-						: message)
-				.code(code).data(t).pageIndex(pageIndex).pageSize(pageSize).total(total).build();
+		return Result.<T>builder().code(code).msg(StrUtils.isBlank(msg)
+				? (code > 0 ? Internation.getStr("msg_success") : Internation.getStr("msg_fail"))
+				: msg).data(t).pageIndex(pageIndex).pageSize(pageSize).total(total).build();
 	}
 
 	/**
