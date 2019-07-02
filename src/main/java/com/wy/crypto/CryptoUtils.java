@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -16,6 +18,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
@@ -28,6 +31,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import com.wy.result.ResultException;
 import com.wy.utils.HexUtils;
+import com.wy.utils.MapUtils;
 import com.wy.utils.StrUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -65,8 +69,7 @@ public class CryptoUtils {
 	}
 
 	/**
-	 * 将传入的消息进行md5加密
-	 * 不可逆,任意长度变等长,flag为true返回base64编码后的加密串,false返回16进制编码后的加密串
+	 * 将传入的消息进行md5加密 不可逆,任意长度变等长,flag为true返回base64编码后的加密串,false返回16进制编码后的加密串
 	 */
 	public static String MD5(String message, boolean flag) {
 		try {
@@ -107,7 +110,6 @@ public class CryptoUtils {
 
 	/**
 	 * aes加密,若使用des加密,可将密钥生成器的随机源改为56
-	 * 
 	 * @param encodeRules 加密规则
 	 * @param content 加密内容
 	 * @return 返回一个16进制字符串
@@ -122,7 +124,6 @@ public class CryptoUtils {
 
 	/**
 	 * AES解密
-	 * 
 	 * @param encodeRules 解密规则
 	 * @param content 需解密16进制字符串
 	 */
@@ -178,6 +179,25 @@ public class CryptoUtils {
 	}
 
 	/**
+	 * RSA生成公私钥
+	 */
+	public static Map<String, Object> createKey() {
+		try {
+			KeyPairGenerator key = KeyPairGenerator.getInstance("RSA");
+			key.initialize(1024);
+			KeyPair keyPair = key.generateKeyPair();
+			RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
+			RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
+			return MapUtils
+					.getBuilder("publicKey", Base64.getEncoder().encode(publicKey.getEncoded()))
+					.add("privateKey", Base64.getEncoder().encode(privateKey.getEncoded())).build();
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
 	 * 从字符串中加载公钥
 	 * @param publicKey 公钥字符串
 	 */
@@ -214,9 +234,7 @@ public class CryptoUtils {
 	/**
 	 * RSA公钥加密
 	 * @param key
-	 * @param xmlstr
-	 *            加密内容长度受秘钥长度限制，若加密内容长度大于(秘钥长度(1024)/8-11=117),
-	 *            则需要分段加密
+	 * @param xmlstr 加密内容长度受秘钥长度限制，若加密内容长度大于(秘钥长度(1024)/8-11=117), 则需要分段加密
 	 */
 	public static String RsaEncrypt(PublicKey key, String xmlstr) {
 		byte[] plainText = xmlstr.getBytes(StandardCharsets.UTF_8);
