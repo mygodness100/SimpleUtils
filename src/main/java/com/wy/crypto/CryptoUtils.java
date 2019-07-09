@@ -57,11 +57,18 @@ public class CryptoUtils {
 	 * 将传入的消息只进行md5加密,不进行其他编码操作
 	 */
 	public static String MD5(String message) {
+		return MD5(message, false);
+	}
+
+	/**
+	 * 将传入的消息进行md5加密,不可逆,无解密,任意长度变等长
+	 * @param flag true返回16进制编码后的加密串,false直接返回加密串
+	 */
+	public static String MD5(String message, boolean flag) {
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
-			byte[] input = message.getBytes();
-			byte[] output = md.digest(input);// 将字节信息加密
-			return new String(output);
+			byte[] output = md.digest(message.getBytes(StandardCharsets.UTF_8));
+			return flag ? new String(output) : HexUtils.bytes2HexStr(output);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -69,43 +76,26 @@ public class CryptoUtils {
 	}
 
 	/**
-	 * 将传入的消息进行md5加密 不可逆,任意长度变等长,flag为true返回base64编码后的加密串,false返回16进制编码后的加密串
+	 * AES简单加密,密钥长度必须是16的倍数位
+	 * @param encodeRules 密钥,必须是16的倍数位
+	 * @param content 需要加解密的内容
+	 * @param flag true为加密,false解密
+	 * @return 加解密转换为16进制之后的大写字符串
 	 */
-	public static String MD5(String message, boolean flag) {
-		try {
-			MessageDigest md = MessageDigest.getInstance("MD5");
-			byte[] input = message.getBytes();
-			byte[] output = md.digest(input);// 将字节信息加密
-			// 利用base64将转码后的字节信息转成字符串
-			return flag ? Base64.getEncoder().encodeToString(output)
-					: HexUtils.bytes2HexStr(output);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	public static String AESSimpleEncrypt(String encodeRules, String content) {
+	public static String AESSimpleCrypt(String encodeRules, String content, boolean flag) {
 		if (StrUtils.isBlank(encodeRules, content)) {
 			throw new ResultException("加密内容或密钥不能为空");
 		}
 		if (encodeRules.length() % 16 != 0) {
 			throw new ResultException("密钥长度必须是16的倍数位");
 		}
-		return HexUtils.bytes2HexStr(AES(content.getBytes(StandardCharsets.UTF_8),
-				encodeRules.getBytes(StandardCharsets.UTF_8), Cipher.ENCRYPT_MODE));
-	}
-
-	public static String AESSimpleDecrypt(String encodeRules, String content) {
-		if (StrUtils.isBlank(encodeRules, content)) {
-			throw new ResultException("加密内容或密钥不能为空");
-		}
-		if (encodeRules.length() % 16 != 0) {
-			throw new ResultException("密钥长度必须是16的倍数位");
-		}
-		return new String(AES(HexUtils.hexStr2Bytes(content),
-				encodeRules.getBytes(StandardCharsets.UTF_8), Cipher.DECRYPT_MODE),
-				StandardCharsets.UTF_8);
+		return flag
+				? HexUtils.bytes2HexStr(AES(content.getBytes(StandardCharsets.UTF_8),
+						encodeRules.getBytes(StandardCharsets.UTF_8), Cipher.ENCRYPT_MODE))
+				: new String(
+						AES(HexUtils.hexStr2Bytes(content),
+								encodeRules.getBytes(StandardCharsets.UTF_8), Cipher.DECRYPT_MODE),
+						StandardCharsets.UTF_8);
 	}
 
 	/**
@@ -118,7 +108,7 @@ public class CryptoUtils {
 		if (StrUtils.isBlank(encodeRules, content)) {
 			return "加密参数不能为空";
 		}
-		return HexUtils.bytes2HexStr(aesCrypto(encodeRules,
+		return HexUtils.bytes2HexStr(aesCrypto(encodeRules.getBytes(StandardCharsets.UTF_8),
 				content.getBytes(StandardCharsets.UTF_8), Cipher.ENCRYPT_MODE));
 	}
 
@@ -137,18 +127,18 @@ public class CryptoUtils {
 		// SecureRandom.getInstance("SHA1PRNG");
 		// random.setSeed(encodeRules.getBytes());
 		// keygen.init(128, random);
-		byte[] byte_decode = aesCrypto(encodeRules, HexUtils.hexStr2Bytes(content),
-				Cipher.DECRYPT_MODE);
+		byte[] byte_decode = aesCrypto(encodeRules.getBytes(StandardCharsets.UTF_8),
+				HexUtils.hexStr2Bytes(content), Cipher.DECRYPT_MODE);
 		return new String(byte_decode, StandardCharsets.UTF_8);
 	}
 
-	private static byte[] aesCrypto(String encodeRules, byte[] content, int mode) {
+	private static byte[] aesCrypto(byte[] encodeRules, byte[] content, int mode) {
 		try {
 			// 1.构造密钥生成器，指定为AES算法,不区分大小写
 			KeyGenerator keygen = KeyGenerator.getInstance("AES");
 			// 2.根据ecnodeRules规则初始化密钥生成器
 			// 生成一个128位的随机源,根据传入的字节数组
-			keygen.init(128, new SecureRandom(encodeRules.getBytes()));
+			keygen.init(128, new SecureRandom(encodeRules));
 			// 3.产生原始对称密钥
 			SecretKey original_key = keygen.generateKey();
 			// 4.获得原始对称密钥的字节数组
@@ -234,7 +224,9 @@ public class CryptoUtils {
 	/**
 	 * RSA公钥加密
 	 * @param key
-	 * @param xmlstr 加密内容长度受秘钥长度限制，若加密内容长度大于(秘钥长度(1024)/8-11=117), 则需要分段加密
+	 * @param xmlstr
+	 *            加密内容长度受秘钥长度限制，若加密内容长度大于(秘钥长度(1024)/8-11=117),
+	 *            则需要分段加密
 	 */
 	public static String RsaEncrypt(PublicKey key, String xmlstr) {
 		byte[] plainText = xmlstr.getBytes(StandardCharsets.UTF_8);
