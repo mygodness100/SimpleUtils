@@ -11,7 +11,7 @@ import com.wy.enums.SysEnum;
  * 获得系统的一些信息
  * @author wanyang 2018年2月26日 FIXME
  */
-public class SysConfig {
+public interface SysConfig {
 
 	/**
 	 * 获得系统参数
@@ -21,7 +21,7 @@ public class SysConfig {
 	}
 
 	/**
-	 *  得到计算机的ip地址和mac地址
+	 * 得到计算机的ip地址和mac地址
 	 */
 	public static String[] getLocalIpMac() {
 		String[] res = new String[3];

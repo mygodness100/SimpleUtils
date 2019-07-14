@@ -11,7 +11,6 @@ import com.wy.enums.RegexEnum;
  * @example 快快乐乐 去掉叠词为快乐,pattern((.)\\1+,$1):
  *          第一个括号表示第一个分组中的任意字符;\\1表示第一个分组,\\2表示第2个分组,需要紧跟在分组之后
  *          +表示可出现多个相同的任意字符,$1表示将分组中的.所代表的任意字符串替换到$1,$2则表示替换第二个分组
- * 
  * @author wanyang 2018年7月7日
  */
 public class StrUtils {
@@ -99,7 +98,6 @@ public class StrUtils {
 
 	/**
 	 * 合法性检查
-	 * 
 	 * @param des 目标字符串
 	 * @param type 检查类型,手机号,qq号等
 	 */
@@ -112,7 +110,6 @@ public class StrUtils {
 
 	/**
 	 * 合法性检查
-	 * 
 	 * @param des 目标字符串
 	 * @param pattern 检查类型
 	 */
@@ -138,11 +135,10 @@ public class StrUtils {
 
 	/**
 	 * 判断是否为中文字符,包括标点等 CJK的意思是“Chinese，Japanese，Korea”的简写
-	 * ，实际上就是指中日韩三国的象形文字的Unicode编码
-	 * CJK_UNIFIED_IDEOGRAPHS:4E00-9FBF:CJK 统一表意符号
+	 * ，实际上就是指中日韩三国的象形文字的Unicode编码 CJK_UNIFIED_IDEOGRAPHS:4E00-9FBF:CJK 统一表意符号
 	 * CJK_COMPATIBILITY_IDEOGRAPHS:F900-FAFF:CJK 兼容象形文字
-	 * CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A:3400-4DBF:CJK
-	 * 统一表意符号扩展A CJK_SYMBOLS_AND_PUNCTUATION:3000-303F:CJK 符号和标点
+	 * CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A:3400-4DBF:CJK 统一表意符号扩展A
+	 * CJK_SYMBOLS_AND_PUNCTUATION:3000-303F:CJK 符号和标点
 	 * HALFWIDTH_AND_FULLWIDTH_FORMS:FF00-FFEF:半角及全角形式
 	 * GENERAL_PUNCTUATION:2000-206F:常用标点
 	 */
@@ -183,7 +179,6 @@ public class StrUtils {
 
 	/**
 	 * 判断一个字符串中是否含有另外一个字符串,不区分大小写
-	 * 
 	 * @param src 原字符串
 	 * @param des 需要检索的字符串
 	 */
@@ -267,5 +262,21 @@ public class StrUtils {
 
 		}
 		return null;
+	}
+
+	public static String formatBuffer(Object... msgs) {
+		StringBuffer builder = new StringBuffer();
+		for (Object msg : msgs) {
+			builder.append(msg);
+		}
+		return builder.toString();
+	}
+
+	public static String formatBuilder(Object... msgs) {
+		StringBuilder builder = new StringBuilder();
+		for (Object msg : msgs) {
+			builder.append(msg);
+		}
+		return builder.toString();
 	}
 }
