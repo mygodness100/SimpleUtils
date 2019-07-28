@@ -89,9 +89,12 @@ public class Result<T> implements Serializable {
 				: msg).data(t).build();
 	}
 
-	public static <T> Result<T> page(T t, int pageIndex, int pageSize, int total) {
-		return Objects.isNull(t) ? page(0, null, null, 0, 0, 0)
-				: page(1, null, t, pageIndex, pageSize, total);
+	public static <T> Result<T> pageOK(T t, int pageIndex, int pageSize, int total) {
+		return page(1, null, t, pageIndex, pageSize, total);
+	}
+
+	public static <T> Result<T> pageError(T t, int pageIndex, int pageSize, int total) {
+		return page(0, null, null, 0, 0, 0);
 	}
 
 	public static <T> Result<T> page(int code, String msg, T t, int pageIndex, int pageSize,
