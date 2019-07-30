@@ -6,17 +6,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 在baseentity中检测是否有排序字段;本注解在{@link com.wy.base.BaseEntity}中使用
- * 
- * @author paradiseWy
- *
+ * @description 当字段上有该注解时表示,字段的值在数据库中唯一
+ * @author ParadiseWY
+ * @date 2019年7月30日 下午5:21:07
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface Sort {
-
+public @interface Unique {
 	/**
-	 * 默认排序字段为实体类字段名,value值代表的字段是驼峰类字段,是数据库字段对应的驼峰字段
+	 * 数据库字段的名称
 	 */
 	String value() default "";
 
