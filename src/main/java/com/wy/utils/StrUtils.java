@@ -1,7 +1,7 @@
 package com.wy.utils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.wy.enums.RegexEnum;
 
@@ -14,6 +14,10 @@ import com.wy.enums.RegexEnum;
  * @author wanyang 2018年7月7日
  */
 public class StrUtils {
+
+	private static final Pattern linePattern = Pattern.compile("_(\\w)");
+
+	private static final Pattern humpPattern = Pattern.compile("[A-Z]");
 
 	private StrUtils() {
 	}
@@ -86,8 +90,7 @@ public class StrUtils {
 			return src;
 		}
 		char baseChar = src.charAt(0);
-		char updatedChar = capitalize ? Character.toUpperCase(baseChar)
-				: Character.toLowerCase(baseChar);
+		char updatedChar = capitalize ? Character.toUpperCase(baseChar) : Character.toLowerCase(baseChar);
 		if (baseChar == updatedChar) {
 			return src;
 		}
@@ -98,7 +101,7 @@ public class StrUtils {
 
 	/**
 	 * 合法性检查
-	 * @param des 目标字符串
+	 * @param des  目标字符串
 	 * @param type 检查类型,手机号,qq号等
 	 */
 	public static boolean checkValidity(String des, RegexEnum type) {
@@ -110,7 +113,7 @@ public class StrUtils {
 
 	/**
 	 * 合法性检查
-	 * @param des 目标字符串
+	 * @param des     目标字符串
 	 * @param pattern 检查类型
 	 */
 	public static final boolean checkValidity(CharSequence des, String pattern) {
@@ -202,40 +205,43 @@ public class StrUtils {
 	}
 
 	/**
-	 * 将带下划线的字段名(蛇底式)变成驼峰式
+	 * @apiNote 将带下划线的字段名(蛇底式)变成驼峰式
 	 */
-	public static String snake2Hump(String column) {
-		if (column.indexOf("_") != -1) {
-			String[] strs = column.split("_");
-			StringBuilder sb = new StringBuilder(strs[0]);
-			for (int i = 1; i < strs.length; i++) {
-				sb.append(upperFirst(strs[i]));
-			}
-			return sb.toString();
+	public static String snake2Hump(String str) {
+		str = str.toLowerCase();
+		Matcher matcher = linePattern.matcher(str);
+		StringBuffer sb = new StringBuffer();
+		while (matcher.find()) {
+			matcher.appendReplacement(sb, matcher.group(1).toUpperCase());
 		}
-		return column;
+		matcher.appendTail(sb);
+		return upperFirst(sb.toString());
 	}
 
 	/**
-	 * 将蛇底式字段转换成驼峰式
+	 * @apiNote 将驼峰转成蛇底式
+	 * @param str 需要进行转换的字符串
+	 * @return 转换后的字符串
 	 */
 	public static String hump2Snake(String str) {
-		int leng = str.length();
-		int i = 0;
-		int index = 0;
-		List<String> res = new ArrayList<>();
-		while (i < leng) {
-			if (Character.isUpperCase(str.charAt(i))) {
-				if (i == 0) {
-					continue;
-				}
-				res.add(str.substring(index, i).toLowerCase());
-				index = i;
-			}
-			i++;
+		return hump2Snake(str, true);
+	}
+
+	/**
+	 * @apiNote 将驼峰转成蛇底式
+	 * @param str        需要进行转换的字符串
+	 * @param lowerFirst 第一个字符串是否小写,true小写,false不管
+	 * @return 转换后的字符串
+	 */
+	public static String hump2Snake(String str, boolean lowerFirst) {
+		str = lowerFirst ? lowerFirst(str) : str;
+		Matcher matcher = humpPattern.matcher(str);
+		StringBuffer sb = new StringBuffer();
+		while (matcher.find()) {
+			matcher.appendReplacement(sb, "_" + matcher.group(0).toLowerCase());
 		}
-		res.add(str.substring(index).toLowerCase());
-		return String.join("_", res);
+		matcher.appendTail(sb);
+		return sb.toString();
 	}
 
 	/**
