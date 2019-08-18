@@ -2,11 +2,16 @@ package com.wy.http;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -14,18 +19,15 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 /**
  * 基于httpclient的http网络编程 FIXME
- * 
  * @author wanyang
  */
-public class HttpClient {
-	// private static CloseableHttpClient client =
-	// HttpClientBuilder.create().build();
-
+public class HttpClientUtils {
 	public static void testHttp() {
 		CloseableHttpClient defaultClient = HttpClients.createDefault();
 		try {
@@ -53,15 +55,19 @@ public class HttpClient {
 		}
 	}
 
-	public static void httpGet() {
+	public static void sendGet(String urlString) {
 		CloseableHttpClient defaultClient = HttpClients.createDefault();
 		CloseableHttpResponse response = null;
 		try {
-			HttpGet httpGet = new HttpGet("http://127.0.0.1:8080/JcWeb/Login");
+			HttpGet httpGet = new HttpGet(urlString);
 			response = defaultClient.execute(httpGet);
-			System.out.println(response.getStatusLine());
-			HttpEntity entity = response.getEntity();
-			EntityUtils.consume(entity);
+			if (response.getStatusLine().getStatusCode() == 200) {
+				System.out.println(response.getStatusLine());
+				HttpEntity entity = response.getEntity();
+				String content = EntityUtils.toString(entity, StandardCharsets.UTF_8);
+				System.out.println(content);
+				// EntityUtils.consume(entity);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -80,6 +86,33 @@ public class HttpClient {
 				}
 			}
 		}
+	}
+
+	public static String sendGet(String url, Map<String, Object> params) {
+		HttpGet httpGet = new HttpGet();
+		URIBuilder uriBuilder = null;
+		try {
+			for (Map.Entry<String, Object> entry : params.entrySet()) {
+				uriBuilder = new URIBuilder(url).addParameter(entry.getKey(),
+						Objects.toString(entry.getValue()));
+			}
+			httpGet.setURI(uriBuilder.build());
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+		try (CloseableHttpClient defaultClient = HttpClients.createDefault();
+				CloseableHttpResponse response = defaultClient.execute(httpGet);) {
+			if (response.getStatusLine().getStatusCode() == 200) {
+				HttpEntity entity = response.getEntity();
+				String content = EntityUtils.toString(entity, StandardCharsets.UTF_8);
+				System.out.println(content);
+				// EntityUtils.consume(entity);
+				return content;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	public static void httpPost() {
@@ -165,4 +198,43 @@ public class HttpClient {
 	// response.close();
 	// }
 
+	static PoolingHttpClientConnectionManager manager = new PoolingHttpClientConnectionManager();
+	static {
+		// 设置最大连接数
+		manager.setMaxTotal(200);
+		// 设置并发数
+		manager.setDefaultMaxPerRoute(20);
+		// 可使用定时任务扫描所有的httpclient,关闭无效的连接
+		// manager.closeExpiredConnections();
+		// 设置2次http握手的时间间隔
+		manager.setValidateAfterInactivity(2000);
+	}
+
+	/**
+	 * 连接池调用get请求
+	 * @param urlString
+	 */
+	public static void testPoolGet(String urlString) {
+		HttpGet httpGet = new HttpGet(urlString);
+		try (CloseableHttpClient client = HttpClients.custom().setConnectionManager(manager)
+				.build(); CloseableHttpResponse response = client.execute(httpGet);) {
+			if (response.getStatusLine().getStatusCode() == 200) {
+				System.out.println(response.getStatusLine());
+				HttpEntity entity = response.getEntity();
+				String content = EntityUtils.toString(entity, StandardCharsets.UTF_8);
+				System.out.println(content);
+				// EntityUtils.consume(entity);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void testSetConfig() {
+		// 设置连接超时时间,从连接池中获取连接的最长时间,数据传输的最长时间
+		RequestConfig config = RequestConfig.custom().setConnectTimeout(2000)
+				.setConnectionRequestTimeout(6000).setSocketTimeout(2000).build();
+		HttpGet get = new HttpGet();
+		get.setConfig(config);
+	}
 }
