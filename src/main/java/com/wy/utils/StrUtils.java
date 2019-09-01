@@ -4,6 +4,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.wy.enums.RegexEnum;
+import com.wy.result.ResultException;
 
 /**
  * 字符串帮助类 正则表达式的分组: @ (),每一个对括号表示一个分组,分组的顺序是从左括号出现的顺序, @
@@ -101,7 +102,7 @@ public class StrUtils {
 
 	/**
 	 * 合法性检查
-	 * @param des  目标字符串
+	 * @param des 目标字符串
 	 * @param type 检查类型,手机号,qq号等
 	 */
 	public static boolean checkValidity(String des, RegexEnum type) {
@@ -113,7 +114,7 @@ public class StrUtils {
 
 	/**
 	 * 合法性检查
-	 * @param des     目标字符串
+	 * @param des 目标字符串
 	 * @param pattern 检查类型
 	 */
 	public static final boolean checkValidity(CharSequence des, String pattern) {
@@ -186,15 +187,10 @@ public class StrUtils {
 	 * @param des 需要检索的字符串
 	 */
 	public static int indexOf(CharSequence src, CharSequence des) {
-		try {
-			if (isBlank(src) || isBlank(des)) {
-				throw new Exception("参数不能为空");
-			}
-			return (src.toString().toLowerCase()).indexOf(des.toString().toLowerCase());
-		} catch (Exception e) {
-			e.printStackTrace();
-			return -1;
+		if (isBlank(src) || isBlank(des)) {
+			throw new ResultException("参数不能为空");
 		}
+		return (src.toString().toLowerCase()).indexOf(des.toString().toLowerCase());
 	}
 
 	/**
@@ -229,7 +225,7 @@ public class StrUtils {
 
 	/**
 	 * @apiNote 将驼峰转成蛇底式
-	 * @param str        需要进行转换的字符串
+	 * @param str 需要进行转换的字符串
 	 * @param lowerFirst 第一个字符串是否小写,true小写,false不管
 	 * @return 转换后的字符串
 	 */

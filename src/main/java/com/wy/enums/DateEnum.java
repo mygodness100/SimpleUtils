@@ -40,7 +40,7 @@ public enum DateEnum {
 		this.format = format;
 	}
 
-	public String getFormat() {
+	public String get() {
 		return format;
 	}
 }

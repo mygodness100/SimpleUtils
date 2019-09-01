@@ -15,7 +15,7 @@ import com.wy.enums.DateEnum;
 public final class DateUtils {
 	public static final long DAY = 1000 * 60 * 60 * 24;
 
-	public static final String DEFAULT_PATTERN = DateEnum.DATETIME.getFormat();
+	public static final String DEFAULT_PATTERN = DateEnum.DATETIME.get();
 
 	private static ThreadLocal<SimpleDateFormat> threadLocal = new ThreadLocal<SimpleDateFormat>() {
 		@Override
@@ -111,14 +111,14 @@ public final class DateUtils {
 	 * 返回指定时间转换为年月日时分秒字符串
 	 */
 	public static String format(long date, DateEnum pattern) {
-		return format(date, pattern.getFormat());
+		return format(date, pattern.get());
 	}
 
 	/**
 	 * 返回指定时间转换为年月日时分秒字符串
 	 */
 	public static String format(Date date, DateEnum pattern) {
-		return format(date, pattern.getFormat());
+		return format(date, pattern.get());
 	}
 
 	/**
@@ -151,7 +151,7 @@ public final class DateUtils {
 	 * 将时间字符串转换为指定格式的date
 	 */
 	public static Date parse(String date, DateEnum pattern) {
-		return parse(date, pattern.getFormat());
+		return parse(date, pattern.get());
 	}
 
 	/**
