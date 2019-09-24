@@ -281,4 +281,14 @@ public class StrUtils {
 		}
 		return builder.toString();
 	}
+
+	/**
+	 * 获得类似三元表达式的结果
+	 * @param str1 若str1不为null,不为"",则返回str1.否则返回str2
+	 * @param str2 若str1不存在时,返回str2
+	 * @return 结果
+	 */
+	public static String getTernary(String str1, String str2) {
+		return isBlank(str1) ? str2 : str1;
+	}
 }
