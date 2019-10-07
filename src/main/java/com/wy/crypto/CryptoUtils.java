@@ -36,6 +36,11 @@ import com.wy.utils.StrUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 简单加密类,复杂可查看commons-codec中的加密
+ * @author ParadiseWY
+ * @date 2019年10月7日 下午7:56:59
+ */
 @Slf4j
 public class CryptoUtils {
 	/**
@@ -49,12 +54,11 @@ public class CryptoUtils {
 	 * 按照UUID算法生成一个字符串,是否做处理,true是
 	 */
 	public static String UUID(boolean flag) {
-		return flag ? UUID.randomUUID().toString().replaceAll("-", "")
-				: UUID.randomUUID().toString();
+		return flag ? UUID.randomUUID().toString().replaceAll("-", "") : UUID.randomUUID().toString();
 	}
 
 	/**
-	 * 将传入的消息只进行md5加密,不进行其他编码操作
+	 * 将传入的消息只进行md5加密,进行16进制编码
 	 */
 	public static String MD5(String message) {
 		return MD5(message, false);
@@ -62,14 +66,15 @@ public class CryptoUtils {
 
 	/**
 	 * 将传入的消息进行md5加密,不可逆,无解密,任意长度变等长
-	 * @param flag true返回16进制编码后的加密串,false直接返回加密串
+	 * @param message 需要进行加密的字符串
+	 * @param flag true返回16进制编码后的加密串,false返回base64编码后字符串
 	 */
 	public static String MD5(String message, boolean flag) {
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
 			byte[] output = md.digest(message.getBytes(StandardCharsets.UTF_8));
-			return flag ? new String(output) : HexUtils.bytes2HexStr(output);
-		} catch (Exception e) {
+			return flag ? Base64.getEncoder().encodeToString(output) : HexUtils.bytes2HexStr(output);
+		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -92,10 +97,8 @@ public class CryptoUtils {
 		return flag
 				? HexUtils.bytes2HexStr(AES(content.getBytes(StandardCharsets.UTF_8),
 						encodeRules.getBytes(StandardCharsets.UTF_8), Cipher.ENCRYPT_MODE))
-				: new String(
-						AES(HexUtils.hexStr2Bytes(content),
-								encodeRules.getBytes(StandardCharsets.UTF_8), Cipher.DECRYPT_MODE),
-						StandardCharsets.UTF_8);
+				: new String(AES(HexUtils.hexStr2Bytes(content), encodeRules.getBytes(StandardCharsets.UTF_8),
+						Cipher.DECRYPT_MODE), StandardCharsets.UTF_8);
 	}
 
 	/**
@@ -127,8 +130,8 @@ public class CryptoUtils {
 		// SecureRandom.getInstance("SHA1PRNG");
 		// random.setSeed(encodeRules.getBytes());
 		// keygen.init(128, random);
-		byte[] byte_decode = aesCrypto(encodeRules.getBytes(StandardCharsets.UTF_8),
-				HexUtils.hexStr2Bytes(content), Cipher.DECRYPT_MODE);
+		byte[] byte_decode = aesCrypto(encodeRules.getBytes(StandardCharsets.UTF_8), HexUtils.hexStr2Bytes(content),
+				Cipher.DECRYPT_MODE);
 		return new String(byte_decode, StandardCharsets.UTF_8);
 	}
 
@@ -161,8 +164,8 @@ public class CryptoUtils {
 			// 不要使用base64加密,会在前端传输中少字符数
 			// 9.根据密码器的初始化方式--加密/解密
 			return cip.doFinal(content);
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException
-				| IllegalBlockSizeException | BadPaddingException e) {
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException
+				| BadPaddingException e) {
 			e.printStackTrace();
 		}
 		return null;
@@ -178,8 +181,7 @@ public class CryptoUtils {
 			KeyPair keyPair = key.generateKeyPair();
 			RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
 			RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
-			return MapUtils
-					.getBuilder("publicKey", Base64.getEncoder().encode(publicKey.getEncoded()))
+			return MapUtils.getBuilder("publicKey", Base64.getEncoder().encode(publicKey.getEncoded()))
 					.add("privateKey", Base64.getEncoder().encode(privateKey.getEncoded())).build();
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
@@ -224,9 +226,7 @@ public class CryptoUtils {
 	/**
 	 * RSA公钥加密
 	 * @param key
-	 * @param xmlstr
-	 *            加密内容长度受秘钥长度限制，若加密内容长度大于(秘钥长度(1024)/8-11=117),
-	 *            则需要分段加密
+	 * @param xmlstr 加密内容长度受秘钥长度限制，若加密内容长度大于(秘钥长度(1024)/8-11=117), 则需要分段加密
 	 */
 	public static String RsaEncrypt(PublicKey key, String xmlstr) {
 		byte[] plainText = xmlstr.getBytes(StandardCharsets.UTF_8);
@@ -246,8 +246,8 @@ public class CryptoUtils {
 				++i;
 			}
 			return Base64.getEncoder().encodeToString(out.toByteArray());
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException
-				| IllegalBlockSizeException | BadPaddingException | IOException e) {
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException
+				| BadPaddingException | IOException e) {
 			log.error(e.getMessage());
 			e.printStackTrace();
 		}
@@ -279,8 +279,8 @@ public class CryptoUtils {
 				++i;
 			}
 			return new String(out.toByteArray(), StandardCharsets.UTF_8);
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException
-				| IllegalBlockSizeException | BadPaddingException | IOException e) {
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException
+				| BadPaddingException | IOException e) {
 			log.error(e.getMessage());
 			e.printStackTrace();
 		}
