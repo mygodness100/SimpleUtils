@@ -9,8 +9,8 @@ import com.wy.enums.DateEnum;
 
 /**
  * calender的set方法和add方法都可以重新设定时间,但是set方法设置时间后会重新计算
- * 
- * @author 万杨
+ * @apiNote 可查看commons-lang的DateUtils以及LocalDateUtils
+ * @author paradiseWy
  */
 public final class DateUtils {
 	public static final long DAY = 1000 * 60 * 60 * 24;
