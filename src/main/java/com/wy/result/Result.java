@@ -29,7 +29,7 @@ public class Result<T> implements Serializable {
 	private T data;
 	private int pageIndex;
 	private int pageSize;
-	private int total;
+	private long total;
 
 	public static <T> Result<T> ok() {
 		return ok(null);
@@ -89,16 +89,16 @@ public class Result<T> implements Serializable {
 				: msg).data(t).build();
 	}
 
-	public static <T> Result<T> pageOK(T t, int pageIndex, int pageSize, int total) {
+	public static <T> Result<T> pageOK(T t, int pageIndex, int pageSize, long total) {
 		return page(1, null, t, pageIndex, pageSize, total);
 	}
 
-	public static <T> Result<T> pageError(T t, int pageIndex, int pageSize, int total) {
+	public static <T> Result<T> pageError(T t, int pageIndex, int pageSize, long total) {
 		return page(0, null, null, 0, 0, 0);
 	}
 
 	public static <T> Result<T> page(int code, String msg, T t, int pageIndex, int pageSize,
-			int total) {
+			long total) {
 		return Result.<T>builder().code(code).msg(StrUtils.isBlank(msg)
 				? (code > 0 ? Internation.getStr("msg_success") : Internation.getStr("msg_fail"))
 				: msg).data(t).pageIndex(pageIndex).pageSize(pageSize).total(total).build();
