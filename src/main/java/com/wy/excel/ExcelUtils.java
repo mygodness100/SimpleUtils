@@ -319,7 +319,8 @@ public class ExcelUtils {
 	}
 
 	/**
-	 * 读取excel表格数据,默认表格中第一行是字段名或key值.且可以使用
+	 * 读取excel表格数据,默认表格中第一行是字段名或key值.且可以使用 FIXME
+	 * 是否需要从第一行开始读取,是否只读取第一个sheet
 	 * @param path 需要读取的excel文件路径
 	 * @return 结果集
 	 */
@@ -328,7 +329,7 @@ public class ExcelUtils {
 			List<Map<String, Object>> res = new ArrayList<>();
 			int sheets = wb.getNumberOfSheets();
 			for (int i = 0; i < sheets; i++) {
-				List<Map<String, Object>> handlerRow = handlerRow(wb.getSheetAt(i), true, null, 0,
+				List<Map<String, Object>> handlerRow = handlerRow(wb.getSheetAt(0), true, null, 0,
 						0);
 				if (handlerRow != null) {
 					res.addAll(handlerRow);
@@ -433,7 +434,7 @@ public class ExcelUtils {
 			for (int k = beginCol; k < cellNum; k++) {
 				Object cellVal = handlerCell(sheet.getRow(j).getCell(k));
 				if (firstUse) {
-					rowData.put(first.getCell(k).getStringCellValue(), cellVal);
+					rowData.put(String.valueOf(first.getCell(k)), cellVal);
 				} else {
 					if (ListUtils.isBlank(titles)) {
 						rowData.put("column" + k, cellVal);
