@@ -329,7 +329,35 @@ public class ExcelUtils {
 			List<Map<String, Object>> res = new ArrayList<>();
 			int sheets = wb.getNumberOfSheets();
 			for (int i = 0; i < sheets; i++) {
-				List<Map<String, Object>> handlerRow = handlerRow(wb.getSheetAt(0), true, null, 0,
+				List<Map<String, Object>> handlerRow = handlerRow(wb.getSheetAt(i), true, null, 0,
+						0);
+				if (handlerRow != null) {
+					res.addAll(handlerRow);
+				}
+			}
+			return res;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	/**
+	 * 读取excel文件中的内容
+	 * @param path 文件地址
+	 * @param sheet 每一个sheet页中的数据
+	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
+	 * @param titles
+	 *            当firstUse为true时,该值传null.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param begin 从第一行的字段开始算起,从第几行开始读取数据
+	 * @return list集合
+	 */
+	public static List<Map<String, Object>> readExcel(String path, boolean firstUse,List<String>) {
+		try (Workbook wb = createIsWorkbook(path);) {
+			List<Map<String, Object>> res = new ArrayList<>();
+			int sheets = wb.getNumberOfSheets();
+			for (int i = 0; i < sheets; i++) {
+				List<Map<String, Object>> handlerRow = handlerRow(wb.getSheetAt(i), true, null, 0,
 						0);
 				if (handlerRow != null) {
 					res.addAll(handlerRow);
