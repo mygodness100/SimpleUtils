@@ -46,6 +46,7 @@ public class ExcelUtils {
 
 	/**
 	 * 根据文件后缀名生成相应的Workbook实例
+	 * 
 	 * @param path 文件路径
 	 * @return Workbook实例
 	 */
@@ -63,6 +64,7 @@ public class ExcelUtils {
 
 	/**
 	 * 根据文件后缀名生成相应的Workbook实例,直接读取文件,设置输入流
+	 * 
 	 * @param path 文件路径
 	 * @return Workbook实例
 	 */
@@ -142,6 +144,7 @@ public class ExcelUtils {
 
 	/**
 	 * 处理第一行的标题
+	 * 
 	 * @param sheet sheet页
 	 * @param datas 第一行的数据
 	 */
@@ -319,46 +322,60 @@ public class ExcelUtils {
 	}
 
 	/**
-	 * 读取excel表格数据,默认表格中第一行是字段名或key值.且可以使用 FIXME
-	 * 是否需要从第一行开始读取,是否只读取第一个sheet
+	 * 读取excel表格数据,默认表格中第一行是key值,且可以使用,不计入数据,从第2行第1列读取数据
+	 * 
 	 * @param path 需要读取的excel文件路径
 	 * @return 结果集
 	 */
 	public static List<Map<String, Object>> readExcel(String path) {
-		try (Workbook wb = createIsWorkbook(path);) {
-			List<Map<String, Object>> res = new ArrayList<>();
-			int sheets = wb.getNumberOfSheets();
-			for (int i = 0; i < sheets; i++) {
-				List<Map<String, Object>> handlerRow = handlerRow(wb.getSheetAt(i), true, null, 0,
-						0);
-				if (handlerRow != null) {
-					res.addAll(handlerRow);
-				}
-			}
-			return res;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
+		return readExcel(path, true, null);
 	}
-	
+
 	/**
-	 * 读取excel文件中的内容
+	 * 读取excel中的数据.第一行不计入数据,从2行第1列开始读取数据
+	 * 
 	 * @param path 文件地址
-	 * @param sheet 每一个sheet页中的数据
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles
-	 *            当firstUse为true时,该值传null.若是false,则该值为字段名或key值,但是第一行数据仍不使用
-	 * @param begin 从第一行的字段开始算起,从第几行开始读取数据
+	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
 	 * @return list集合
 	 */
-	public static List<Map<String, Object>> readExcel(String path, boolean firstUse,List<String>) {
+	public static List<Map<String, Object>> readExcel(String path, boolean firstUse,
+			List<String> titles) {
+		return readExcel(path, firstUse, titles, 0);
+	}
+
+	/**
+	 * 读取excel中的数据.excel的第一行作为key值,不计入数据,从第beginRow+2行第1列开始读取数据
+	 * 
+	 * @param path 文件地址
+	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
+	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param beginRow 从第beginRow+2行开始读取数据
+	 * @return list集合
+	 */
+	public static List<Map<String, Object>> readExcel(String path, boolean firstUse,
+			List<String> titles, int beginRow) {
+		return readExcel(path, firstUse, titles, beginRow, 0);
+	}
+
+	/**
+	 * 读取excel中的数据.excel的第一行作为key值,不计入数据,从第beginRow+2行第beginCol+1列开始读取数据
+	 * 
+	 * @param path 需要读取的excel路径
+	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
+	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param beginRow 从第beginRow+2行开始读取数据
+	 * @param beginCol 从第beginCol+1列开始读取excel
+	 * @return 结果集
+	 */
+	public static List<Map<String, Object>> readExcel(String path, boolean firstUse,
+			List<String> titles, int beginRow, int beginCol) {
 		try (Workbook wb = createIsWorkbook(path);) {
 			List<Map<String, Object>> res = new ArrayList<>();
-			int sheets = wb.getNumberOfSheets();
-			for (int i = 0; i < sheets; i++) {
-				List<Map<String, Object>> handlerRow = handlerRow(wb.getSheetAt(i), true, null, 0,
-						0);
+			int sheetNum = wb.getNumberOfSheets();
+			for (int i = 0; i < sheetNum; i++) {
+				List<Map<String, Object>> handlerRow = handlerRow(wb.getSheetAt(i), firstUse,
+						titles, beginRow, beginCol);
 				if (handlerRow != null) {
 					res.addAll(handlerRow);
 				}
@@ -371,7 +388,8 @@ public class ExcelUtils {
 	}
 
 	/**
-	 * 读取excel表格数据,默认表格中第一行是字段名或key值.且可以使用
+	 * 读取excel表格数据,默认表格中第一行是key值,且可以使用,不计入数据,从第2行第1列读取数据
+	 * 
 	 * @param is 输入流
 	 * @return 结果集
 	 */
@@ -380,11 +398,11 @@ public class ExcelUtils {
 	}
 
 	/**
-	 * 读取excel中的数据,从excel中的第0行第0列开始读取
+	 * 读取excel中的数据.第一行不计入数据,从2行第1列开始读取数据
+	 * 
 	 * @param is 输入流
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles
-	 *            当firstUse为true时,该值传null.若是false,则该值为字段名或key值的集合,但是第一行数据仍不使用
+	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值的集合,但是第一行数据仍不使用
 	 * @return 结果集
 	 */
 	public static List<Map<String, Object>> readExcel(InputStream is, boolean firstUse,
@@ -393,12 +411,12 @@ public class ExcelUtils {
 	}
 
 	/**
-	 * 读取excel中的数据,从excel表格的第beginRow行第0列开始读取
+	 * 读取excel中的数据.excel的第一行作为key值,不计入数据,从第beginRow+2行第1列开始读取数据
+	 * 
 	 * @param is 输入流
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles
-	 *            当firstUse为true时,该值传null.若是false,则该值为字段名或key值,但是第一行数据仍不使用
-	 * @param beginRow 从第几行开始读取excel
+	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param beginRow 从第beginRow+2行开始读取excel
 	 * @return 结果集
 	 */
 	public static List<Map<String, Object>> readExcel(InputStream is, boolean firstUse,
@@ -407,13 +425,13 @@ public class ExcelUtils {
 	}
 
 	/**
-	 * 读取excel中的数据
+	 * 读取excel中的数据.excel的第一行作为key值,不计入数据,从第beginRow+2行第beginCol+1列开始读取数据
+	 * 
 	 * @param is 输入流
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles
-	 *            当firstUse为true时,该值传null.若是false,则该值为字段名或key值,但是第一行数据仍不使用
-	 * @param beginRow 从第几行开始读取excel
-	 * @param beginCol 从第几列就开始读取excel
+	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param beginRow 从第beginRow+2行开始读取excel数据
+	 * @param beginCol 从第beginCol+1列开始读取excel
 	 * @return 结果集
 	 */
 	public static List<Map<String, Object>> readExcel(InputStream is, boolean firstUse,
@@ -438,11 +456,12 @@ public class ExcelUtils {
 
 	/**
 	 * 读取excel中的数据
+	 * 
 	 * @param sheet 每一个sheet页中的数据
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles
-	 *            当firstUse为true时,该值传null.若是false,则该值为字段名或key值,但是第一行数据仍不使用
-	 * @param begin 从第一行的字段开始算起,从第几行开始读取数据
+	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param beginRow 从第beginRow+2行开始读取excel数据
+	 * @param beginCol 从第beginCol+1列开始读取excel
 	 * @return 结果集
 	 */
 	private static List<Map<String, Object>> handlerRow(Sheet sheet, boolean firstUse,
