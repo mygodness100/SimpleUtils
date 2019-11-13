@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -103,6 +104,7 @@ public final class ListUtils {
 
 	/**
 	 * 将集合中的数据按照某个key的值进行分类
+	 * 
 	 * @param datas 数据集
 	 * @param column 进行的分类的key
 	 * @return 结果集
@@ -125,6 +127,15 @@ public final class ListUtils {
 			}
 		}
 		return res;
+	}
+
+	public static String createParams(Collection<String> params) {
+		Iterator<String> it = params.iterator();
+		Collection<String> result = new ArrayList<>();
+		while (it.hasNext()) {
+			result.add(it.next() + "=" + it.next());
+		}
+		return String.join("&", result);
 	}
 
 	public static <T> ListBuilder<T> getBuilder() {
