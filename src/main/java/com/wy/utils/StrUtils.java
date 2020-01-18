@@ -211,7 +211,7 @@ public class StrUtils {
 			matcher.appendReplacement(sb, matcher.group(1).toUpperCase());
 		}
 		matcher.appendTail(sb);
-		return upperFirst(sb.toString());
+		return changeFirst(sb.toString(),false);
 	}
 
 	/**
