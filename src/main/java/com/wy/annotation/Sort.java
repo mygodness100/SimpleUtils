@@ -5,6 +5,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.wy.enums.Direction;
+
+
 /**
  * 在baseentity中检测是否有排序字段;本注解在{@link com.wy.base.BaseEntity}中使用
  * 
@@ -24,4 +27,10 @@ public @interface Sort {
 	 * 当value为""时,取实体类字段的名称,实体类是否需要转换为蛇形
 	 */
 	boolean hump2Snake() default true;
+	
+	/**
+	 * 排序升序或降序,默认升序
+	 * @return
+	 */
+	Direction direction() default Direction.ASC;
 }
