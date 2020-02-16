@@ -78,3 +78,6 @@
 * 使用nexus sonatype,官网上下载压缩包,解压后有2个文件夹:一个是nexus的运行程序,配置文件等;另外一个文件夹则是nexus从远程仓库下载到本地的jar包存放地址.
 * 配置nexus的环境变量,使用前需要先修改bin/jsw/conf/wrapper.confg文件,修改wrapper.java.command的值为当前系统jdk的安装目录,需要到bin这一级,并且是绝对地址,之后在控制台使用命令:nexus install安装nexus
 * 安装完之后控制台:nexus start启动nexus.启动之后可在控制台打开localhost:8081,用户名密码为admin,admin123
+
+### jar说明
+* jave-all-deps:音视频转换,获得音视频详情
