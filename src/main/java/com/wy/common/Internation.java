@@ -19,7 +19,7 @@ import com.wy.utils.StrUtils;
  * @date 2019年6月7日 下午9:06:41
  * @git {@link https://github.com/mygodness100}
  */
-public final class Internation {
+public class Internation {
 	private static ResourceBundle resource;
 
 	static {

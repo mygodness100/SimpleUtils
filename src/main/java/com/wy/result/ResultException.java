@@ -1,5 +1,6 @@
 package com.wy.result;
 
+import com.wy.common.TipCode;
 import com.wy.enums.TipEnum;
 
 public class ResultException extends RuntimeException {
@@ -15,8 +16,8 @@ public class ResultException extends RuntimeException {
 		this(TipEnum.TIP_SYS_ERROR);
 	}
 
-	public ResultException(TipEnum tipEnum) {
-		this(tipEnum.getCode(), tipEnum.getMsg(), null);
+	public ResultException(TipCode tipCode) {
+		this(tipCode.getCode(), tipCode.getMsg(), null);
 	}
 
 	public ResultException(CharSequence message) {

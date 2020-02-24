@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import com.wy.common.Internation;
+import com.wy.common.TipCode;
 import com.wy.enums.TipEnum;
 import com.wy.utils.MapUtils;
 import com.wy.utils.StrUtils;
@@ -17,6 +18,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * @apiNote 结果,code为1时成功,其他全部失败 
+ * @author ParadiseWY
+ * @date 2020年2月20日 下午2:47:26
+ */
 @Getter
 @Setter
 @AllArgsConstructor
@@ -53,11 +59,15 @@ public class Result<T> implements Serializable {
 	}
 
 	public static <T> Result<T> error() {
-		return error(null);
+		return error("");
 	}
 
 	public static <T> Result<T> error(String msg) {
 		return error(0, msg);
+	}
+	
+	public static <T> Result<T> error(TipCode tipCode){
+		return error(tipCode.getCode(),tipCode.getMsg());
 	}
 
 	public static <T> Result<T> error(int code, String msg) {
