@@ -7,7 +7,7 @@ import com.wy.utils.StrUtils;
  * @author 万杨
  */
 public class Mail {
-	private String mailHost = "stmp.sina.com"; // 发送邮件服务器类型,一般是默认是smtp.sina.com,stmp.qq.com
+	private String mailHost = "smtp.sina.com"; // 发送邮件服务器类型,一般是默认是smtp.sina.com,smtp.qq.com
 	private Integer mailPort = 25; // 服务器端口,qq是465或576,其他默认是25
 	private String username; // 发送者用户名
 	private String password; // 发送的密码,qq是开启smtp服务的密钥,其他是邮箱密码

@@ -5,9 +5,9 @@ import com.wy.common.TipCode;
 
 public enum TipEnum implements TipCode {
 
-	UNKNOWN(-1, "msg_unknown"),
-	FAIL(0, "msg_fail"),
-	SUCCESS(1, "msg_success"),
+	TIP_RESPONSE_UNKNOWN(-1, "msg_unknown"),
+	TIP_RESPONSE_FAIL(0, "msg_fail"),
+	TIP_RESPONSE_SUCCESS(1, "msg_success"),
 	
 	TIP_LOGIN_FAIL(-10000, "msg_login_fail"),
 	TIP_LOGIN_FAIL_USERNAME(-9999, "msg_login_fail_username"),
