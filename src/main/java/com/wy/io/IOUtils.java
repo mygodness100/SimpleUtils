@@ -23,9 +23,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -36,6 +38,7 @@ import java.util.zip.GZIPOutputStream;
 
 import javax.imageio.ImageIO;
 
+import com.wy.result.ResultException;
 import com.wy.utils.StrUtils;
 
 /**
@@ -53,8 +56,7 @@ public final class IOUtils {
 			put(0, new ArrayList<>(Arrays.asList(".BMP", ".PNG", ".GIF", ".JPG", ".JPEG")));
 			put(1, new ArrayList<>(Arrays.asList(".AMR", ".MP3", ".WMA", ".WAV", ".MID")));
 			put(2, new ArrayList<>(Arrays.asList(".MP4", ".AVI", ".3GP", ".RM", ".RMVB", ".WMV")));
-			put(3, new ArrayList<>(
-					Arrays.asList(".TXT", ".JSON", ".XML", ".DOC", ".XLS", ".XLSX")));
+			put(3, new ArrayList<>(Arrays.asList(".TXT", ".JSON", ".XML", ".DOC", ".XLS", ".XLSX")));
 		}
 	};
 
@@ -203,8 +205,8 @@ public final class IOUtils {
 	 * @param thumbHeight
 	 * @param quality
 	 */
-	public static void transform(String originalFile, String thumbnailFile, int thumbWidth,
-			int thumbHeight, int quality) throws Exception {
+	public static void transform(String originalFile, String thumbnailFile, int thumbWidth, int thumbHeight,
+			int quality) throws Exception {
 		Image image = javax.imageio.ImageIO.read(new File(originalFile));
 
 		double thumbRatio = (double) thumbWidth / (double) thumbHeight;
@@ -226,14 +228,12 @@ public final class IOUtils {
 			thumbHeight = imageHeight;
 		}
 
-		BufferedImage thumbImage = new BufferedImage(thumbWidth, thumbHeight,
-				BufferedImage.TYPE_INT_RGB);
+		BufferedImage thumbImage = new BufferedImage(thumbWidth, thumbHeight, BufferedImage.TYPE_INT_RGB);
 		Graphics2D graphics2D = thumbImage.createGraphics();
 		graphics2D.setBackground(Color.WHITE);
 		graphics2D.setPaint(Color.WHITE);
 		graphics2D.fillRect(0, 0, thumbWidth, thumbHeight);
-		graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-				RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 		graphics2D.drawImage(image, 0, 0, thumbWidth, thumbHeight, null);
 		ImageIO.write(thumbImage, "JPG", new File(thumbnailFile));
 	}
@@ -251,10 +251,9 @@ public final class IOUtils {
 			if (listFiles != null && listFiles.length > 0) {
 				for (File childFile : listFiles) {
 					if (childFile.isFile()) {
-						String fileName = childFile.getParent() + File.separator + childFile
-								.getName()
-								.replace("[YYDM-11FANS][Gundam_Seed-Destiny-HD-ReMaster]", "")
-								.replace("[BDRIP][X264-10bit_AAC][720P]", "");
+						String fileName = childFile.getParent() + File.separator
+								+ childFile.getName().replace("[YYDM-11FANS][Gundam_Seed-Destiny-HD-ReMaster]", "")
+										.replace("[BDRIP][X264-10bit_AAC][720P]", "");
 						childFile.renameTo(new File(fileName));
 					}
 				}
@@ -498,8 +497,7 @@ public final class IOUtils {
 		BufferedReader br = null;
 		OutputStreamWriter osr = null;
 		try {
-			File src = new File(
-					"D:\\Java\\responsity\\javas\\Utils\\src\\com\\wy\\utils\\kukudas1530372519755.txt");
+			File src = new File("D:\\Java\\responsity\\javas\\Utils\\src\\com\\wy\\utils\\kukudas1530372519755.txt");
 			InputStreamReader isr = new InputStreamReader(new FileInputStream(src));
 			br = new BufferedReader(isr);
 			String line = null;
@@ -612,5 +610,87 @@ public final class IOUtils {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	/**
+	 * @apiNote 文件分块,将大文件分成多个小块
+	 * @param fileSrc 需要分块的文件地址
+	 * @param chunkFolder 分块之后的文件存放目录
+	 */
+	public void testChunk(String fileSrc, String chunkFolder) {
+		File sourceFile = new File(fileSrc);
+		if (sourceFile == null || !sourceFile.exists()) {
+			throw new ResultException("文件不存在");
+		}
+		// 块文件大小,1M
+		long chunkFileSize = 1 * 1024 * 1024;
+		// 块数
+		long chunkFileNum = (long) Math.ceil(sourceFile.length() * 1.0 / chunkFileSize);
+		try {
+			RandomAccessFile raf_read = new RandomAccessFile(sourceFile, "r");
+			byte[] b = new byte[1024];
+			for (int i = 0; i < chunkFileNum; i++) {
+				File chunkFile = new File(chunkFolder + i);
+				// 创建向块文件的写对象
+				RandomAccessFile raf_write = new RandomAccessFile(chunkFile, "rw");
+				int len = -1;
+				while ((len = raf_read.read(b)) != -1) {
+					raf_write.write(b, 0, len);
+					// 如果块文件的大小达到1M开始写下一块儿
+					if (chunkFile.length() >= chunkFileSize) {
+						break;
+					}
+				}
+				raf_write.close();
+			}
+			raf_read.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * @apiNote 文件合并,文件必须是按顺序切割的文件列表,文件名必须是纯数字或数字是接在下划线之后,如filename_01,filename_02...
+	 * @apiNote 文件名若是带下划线,则只能有一个下划线,否则同样会出问题
+	 * @param chunkFolder 块文件目录
+	 * @param desFile 合成后的文件地址,是一个文件
+	 */
+	public void testMergeFile(String chunkFolder, String desFile) {
+		File chunkFile = new File(chunkFolder);
+		if (chunkFile == null || !chunkFile.exists() || !chunkFile.isDirectory()) {
+			throw new ResultException("文件不存在或文件不是一个目录");
+		}
+		// 块文件列表
+		File[] files = chunkFile.listFiles();
+		// 将块文件排序,按名称升序
+		List<File> fileList = Arrays.asList(files);
+		Collections.sort(fileList, (file1, file2) -> {
+			if (Integer.parseInt(
+					file1.getName().indexOf("_") > -1 ? file1.getName().substring(file1.getName().indexOf("_") + 1)
+							: file1.getName()) > Integer
+									.parseInt(file2.getName().indexOf("_") > -1
+											? file2.getName().substring(file2.getName().indexOf("_") + 1)
+											: file2.getName())) {
+				return 1;
+			}
+			return -1;
+		});
+		File mergeFile = new File(desFile);
+		try (RandomAccessFile raf_write = new RandomAccessFile(mergeFile, "rw");) {
+			byte[] b = new byte[1024];
+			RandomAccessFile raf_read = null;
+			for (File file : fileList) {
+				raf_read = new RandomAccessFile(file, "r");
+				int len = -1;
+				while ((len = raf_read.read(b)) != -1) {
+					raf_write.write(b, 0, len);
+				}
+				if (raf_read != null) {
+					raf_read.close();
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
