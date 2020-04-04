@@ -73,18 +73,19 @@ public class ExcelUtils {
 		if (!file.exists()) {
 			throw new ResultException("文件不存在");
 		}
+		Workbook workbook = null;
 		try {
 			if (path.endsWith(".xlsx")) {
-				return new XSSFWorkbook(new FileInputStream(file));
+				workbook = new XSSFWorkbook(new FileInputStream(file));
 			} else if (path.endsWith(".xls")) {
-				return new HSSFWorkbook(new FileInputStream(file));
+				workbook = new HSSFWorkbook(new FileInputStream(file));
 			} else {
 				throw new ResultException("excel文件格式不正确!");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return null;
+		return workbook;
 	}
 
 	/**
@@ -100,8 +101,8 @@ public class ExcelUtils {
 	/**
 	 * 根据excel文件的结尾判断生成那种版本的excel,若未指定类型,自动归结为低版本excel
 	 * 
-	 * @param path 以.xls或xlsx结尾的文件路径
-	 * @param list 实体类数据源集合
+	 * @param path    以.xls或xlsx结尾的文件路径
+	 * @param list    实体类数据源集合
 	 * @param subject 是否添加字段名称,true添加false不添加,默认添加
 	 */
 	public static <T> boolean writeExcel(List<T> list, String path, boolean subject) {
@@ -109,8 +110,7 @@ public class ExcelUtils {
 			log.info("路径不存在或数据源为空!");
 			return false;
 		}
-		try (FileOutputStream fos = new FileOutputStream(path);
-				Workbook workbook = createWorkbook(path);) {
+		try (FileOutputStream fos = new FileOutputStream(path); Workbook workbook = createWorkbook(path);) {
 			Sheet sheet = workbook.createSheet();
 			int beginRow = subject ? 1 : 0;
 			Class<?> clazz = list.get(0).getClass();
@@ -135,8 +135,7 @@ public class ExcelUtils {
 			}
 			workbook.write(fos);
 			return true;
-		} catch (IOException | NoSuchFieldException | SecurityException
-				| IllegalAccessException e) {
+		} catch (IOException | NoSuchFieldException | SecurityException | IllegalAccessException e) {
 			e.printStackTrace();
 			return false;
 		}
@@ -171,8 +170,8 @@ public class ExcelUtils {
 	/**
 	 * 根据excel文件的结尾判断生成那种版本的excel,若未指定类型,自动归结为低版本excel
 	 * 
-	 * @param path 以.xls或xlsx结尾的文件路径
-	 * @param list map类数据源集合
+	 * @param path    以.xls或xlsx结尾的文件路径
+	 * @param list    map类数据源集合
 	 * @param subject 是否添加字段名称,true添加false不添加,默认添加
 	 */
 	public static boolean writeExcel(String path, List<Map<String, Object>> list, boolean subject) {
@@ -180,8 +179,7 @@ public class ExcelUtils {
 			log.info("路径不存在或数据源为空!");
 			return false;
 		}
-		try (FileOutputStream fos = new FileOutputStream(path);
-				Workbook workbook = createWorkbook(path);) {
+		try (FileOutputStream fos = new FileOutputStream(path); Workbook workbook = createWorkbook(path);) {
 			Sheet sheet = workbook.createSheet();
 			int beginRow = subject ? 1 : 0;
 			List<String> allField = new ArrayList<>(list.get(0).keySet());
@@ -236,7 +234,7 @@ public class ExcelUtils {
 	 * 写入一个xls结尾的excel文件,低版本的excel,Excel2003以前(包括2003)的版本
 	 * 
 	 * @param excel 数据源
-	 * @param path 写入文件路径
+	 * @param path  写入文件路径
 	 */
 	public static boolean writeXLS(String path, List<List<Object>> datas) {
 		List<List<List<Object>>> excel = new ArrayList<>();
@@ -248,7 +246,7 @@ public class ExcelUtils {
 	 * 写入一个xls结尾的excel文件,低版本的excel,Excel2003以前(包括2003)的版本
 	 * 
 	 * @param excel 数据源
-	 * @param path 写入文件路径
+	 * @param path  写入文件路径
 	 */
 	public static boolean writeXLS(List<List<List<Object>>> excel, String path) {
 		return writeExcel(new HSSFWorkbook(), excel, path);
@@ -258,7 +256,7 @@ public class ExcelUtils {
 	 * 写入一个xlsx结尾的excel文件,高版本的excel,Excel2007的版本
 	 * 
 	 * @param excel 数据源
-	 * @param path 写入文件路径
+	 * @param path  写入文件路径
 	 */
 	public static boolean writeXLSX(String path, List<List<Object>> datas) {
 		List<List<List<Object>>> excel = new ArrayList<>();
@@ -270,7 +268,7 @@ public class ExcelUtils {
 	 * 写入一个xlsx结尾的excel文件,高版本的excel,Excel2007的版本
 	 * 
 	 * @param excel 数据源
-	 * @param path 写入文件路径
+	 * @param path  写入文件路径
 	 */
 	public static boolean writeXLSX(List<List<List<Object>>> excel, String path) {
 		return writeExcel(new XSSFWorkbook(), excel, path);
@@ -280,14 +278,13 @@ public class ExcelUtils {
 	 * 将数据写入一个excel表中,表以低版本为主,即以xls结尾,默认无字段栏
 	 * 
 	 * @param excel 数据源
-	 * @param path 写入文件路径
+	 * @param path  写入文件路径
 	 */
 	public static boolean writeExcel(Workbook wb, List<List<List<Object>>> datas, String path) {
 		return writeExcel(wb, datas, path, null);
 	}
 
-	public static boolean writeExcel(Workbook wb, List<List<List<Object>>> excel, String path,
-			CellStyle cellStyle) {
+	public static boolean writeExcel(Workbook wb, List<List<List<Object>>> excel, String path, CellStyle cellStyle) {
 		try (FileOutputStream fos = new FileOutputStream(path); Workbook workbook = wb;) {
 			for (int page = 0; page < excel.size(); page++) {
 				// 创建表单
@@ -334,48 +331,47 @@ public class ExcelUtils {
 	/**
 	 * 读取excel中的数据.第一行不计入数据,从2行第1列开始读取数据
 	 * 
-	 * @param path 文件地址
+	 * @param path     文件地址
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param titles   当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
 	 * @return list集合
 	 */
-	public static List<Map<String, Object>> readExcel(String path, boolean firstUse,
-			List<String> titles) {
+	public static List<Map<String, Object>> readExcel(String path, boolean firstUse, List<String> titles) {
 		return readExcel(path, firstUse, titles, 0);
 	}
 
 	/**
 	 * 读取excel中的数据.excel的第一行作为key值,不计入数据,从第beginRow+2行第1列开始读取数据
 	 * 
-	 * @param path 文件地址
+	 * @param path     文件地址
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param titles   当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
 	 * @param beginRow 从第beginRow+2行开始读取数据
 	 * @return list集合
 	 */
-	public static List<Map<String, Object>> readExcel(String path, boolean firstUse,
-			List<String> titles, int beginRow) {
+	public static List<Map<String, Object>> readExcel(String path, boolean firstUse, List<String> titles,
+			int beginRow) {
 		return readExcel(path, firstUse, titles, beginRow, 0);
 	}
 
 	/**
 	 * 读取excel中的数据.excel的第一行作为key值,不计入数据,从第beginRow+2行第beginCol+1列开始读取数据
 	 * 
-	 * @param path 需要读取的excel路径
+	 * @param path     需要读取的excel路径
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param titles   当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
 	 * @param beginRow 从第beginRow+2行开始读取数据
 	 * @param beginCol 从第beginCol+1列开始读取excel
 	 * @return 结果集
 	 */
-	public static List<Map<String, Object>> readExcel(String path, boolean firstUse,
-			List<String> titles, int beginRow, int beginCol) {
+	public static List<Map<String, Object>> readExcel(String path, boolean firstUse, List<String> titles, int beginRow,
+			int beginCol) {
 		try (Workbook wb = createIsWorkbook(path);) {
 			List<Map<String, Object>> res = new ArrayList<>();
 			int sheetNum = wb.getNumberOfSheets();
 			for (int i = 0; i < sheetNum; i++) {
-				List<Map<String, Object>> handlerRow = handlerRow(wb.getSheetAt(i), firstUse,
-						titles, beginRow, beginCol);
+				List<Map<String, Object>> handlerRow = handlerRow(wb.getSheetAt(i), firstUse, titles, beginRow,
+						beginCol);
 				if (handlerRow != null) {
 					res.addAll(handlerRow);
 				}
@@ -400,48 +396,46 @@ public class ExcelUtils {
 	/**
 	 * 读取excel中的数据.第一行不计入数据,从2行第1列开始读取数据
 	 * 
-	 * @param is 输入流
+	 * @param is       输入流
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值的集合,但是第一行数据仍不使用
+	 * @param titles   当firstUse为true时,该值不使用.若是false,则该值为字段名或key值的集合,但是第一行数据仍不使用
 	 * @return 结果集
 	 */
-	public static List<Map<String, Object>> readExcel(InputStream is, boolean firstUse,
-			List<String> titles) {
+	public static List<Map<String, Object>> readExcel(InputStream is, boolean firstUse, List<String> titles) {
 		return readExcel(is, firstUse, titles, 0);
 	}
 
 	/**
 	 * 读取excel中的数据.excel的第一行作为key值,不计入数据,从第beginRow+2行第1列开始读取数据
 	 * 
-	 * @param is 输入流
+	 * @param is       输入流
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param titles   当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
 	 * @param beginRow 从第beginRow+2行开始读取excel
 	 * @return 结果集
 	 */
-	public static List<Map<String, Object>> readExcel(InputStream is, boolean firstUse,
-			List<String> titles, int beginRow) {
+	public static List<Map<String, Object>> readExcel(InputStream is, boolean firstUse, List<String> titles,
+			int beginRow) {
 		return readExcel(is, firstUse, titles, beginRow, 0);
 	}
 
 	/**
 	 * 读取excel中的数据.excel的第一行作为key值,不计入数据,从第beginRow+2行第beginCol+1列开始读取数据
 	 * 
-	 * @param is 输入流
+	 * @param is       输入流
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param titles   当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
 	 * @param beginRow 从第beginRow+2行开始读取excel数据
 	 * @param beginCol 从第beginCol+1列开始读取excel
 	 * @return 结果集
 	 */
-	public static List<Map<String, Object>> readExcel(InputStream is, boolean firstUse,
-			List<String> titles, int beginRow, int beginCol) {
+	public static List<Map<String, Object>> readExcel(InputStream is, boolean firstUse, List<String> titles,
+			int beginRow, int beginCol) {
 		try (Workbook wb = WorkbookFactory.create(is);) {
 			int sheets = wb.getNumberOfSheets();
 			List<Map<String, Object>> res = new ArrayList<>();
 			for (int i = 0; i < sheets; i++) {
-				List<Map<String, Object>> row = handlerRow(wb.getSheetAt(i), firstUse, titles,
-						beginRow, beginCol);
+				List<Map<String, Object>> row = handlerRow(wb.getSheetAt(i), firstUse, titles, beginRow, beginCol);
 				if (ListUtils.isNotBlank(row)) {
 					res.addAll(row);
 				}
@@ -457,15 +451,15 @@ public class ExcelUtils {
 	/**
 	 * 读取excel中的数据
 	 * 
-	 * @param sheet 每一个sheet页中的数据
+	 * @param sheet    每一个sheet页中的数据
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param titles   当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
 	 * @param beginRow 从第beginRow+2行开始读取excel数据
 	 * @param beginCol 从第beginCol+1列开始读取excel
 	 * @return 结果集
 	 */
-	private static List<Map<String, Object>> handlerRow(Sheet sheet, boolean firstUse,
-			List<String> titles, int beginRow, int beginCol) {
+	private static List<Map<String, Object>> handlerRow(Sheet sheet, boolean firstUse, List<String> titles,
+			int beginRow, int beginCol) {
 		int rows = sheet.getLastRowNum();
 		if (rows < 2) {
 			return null;
@@ -500,19 +494,19 @@ public class ExcelUtils {
 			return null;
 		}
 		switch (cell.getCellTypeEnum()) {
-			case BLANK:
-			case _NONE:
-				return null;
-			case BOOLEAN:
-				return cell.getBooleanCellValue();
-			case NUMERIC:
-				return cell.getNumericCellValue();
-			case STRING:
-				return cell.getStringCellValue();
-			case FORMULA:
-				return cell.getRichStringCellValue().getString();
-			default:
-				return null;
+		case BLANK:
+		case _NONE:
+			return null;
+		case BOOLEAN:
+			return cell.getBooleanCellValue();
+		case NUMERIC:
+			return cell.getNumericCellValue();
+		case STRING:
+			return cell.getStringCellValue();
+		case FORMULA:
+			return cell.getRichStringCellValue().getString();
+		default:
+			return null;
 		}
 	}
 }
