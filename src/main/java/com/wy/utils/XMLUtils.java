@@ -459,7 +459,7 @@ public class XMLUtils {
 	 *            属性名
 	 */
 	public static List<Node> getByXPathAttrsNoNS(Document document, String... attrs) {
-		return StrUtils.isBlank(attrs) ? null : getByXPathNoNS(document, null, attrs);
+		return StrUtils.isAnyBlank(attrs) ? null : getByXPathNoNS(document, null, attrs);
 	}
 
 	/**
@@ -491,7 +491,7 @@ public class XMLUtils {
 			return list;
 		}
 		// 完整的xpath路径
-		if (StrUtils.isBlank(attrs)) {
+		if (StrUtils.isAnyBlank(attrs)) {
 			return document.selectNodes(xpath);
 		}
 		// 获得处理后的xpath

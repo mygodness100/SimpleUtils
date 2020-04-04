@@ -88,7 +88,7 @@ public class CryptoUtils {
 	 * @return 加解密转换为16进制之后的大写字符串
 	 */
 	public static String AESSimpleCrypt(String encodeRules, String content, boolean flag) {
-		if (StrUtils.isBlank(encodeRules, content)) {
+		if (StrUtils.isAnyBlank(encodeRules, content)) {
 			throw new ResultException("加密内容或密钥不能为空");
 		}
 		if (encodeRules.length() % 16 != 0) {
@@ -108,7 +108,7 @@ public class CryptoUtils {
 	 * @return 返回一个16进制字符串
 	 */
 	public static String AESEncrypt(String encodeRules, String content) {
-		if (StrUtils.isBlank(encodeRules, content)) {
+		if (StrUtils.isAnyBlank(encodeRules, content)) {
 			return "加密参数不能为空";
 		}
 		return HexUtils.bytes2HexStr(aesCrypto(encodeRules.getBytes(StandardCharsets.UTF_8),
@@ -121,7 +121,7 @@ public class CryptoUtils {
 	 * @param content 需解密16进制字符串
 	 */
 	public static String AESDecrypt(String encodeRules, String content) {
-		if (StrUtils.isBlank(encodeRules, content)) {
+		if (StrUtils.isAnyBlank(encodeRules, content)) {
 			return "加密参数不能为空";
 		}
 		// 若是将此解密方法放到linux机器报错,则使用以下方法生成随机源

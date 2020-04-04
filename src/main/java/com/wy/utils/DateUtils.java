@@ -159,7 +159,7 @@ public final class DateUtils {
 	 */
 	public static Date parse(String date, String pattern) {
 		try {
-			if (StrUtils.isBlank(pattern, date)) {
+			if (StrUtils.isAnyBlank(pattern, date)) {
 				return null;
 			}
 			return get(pattern).parse(date);

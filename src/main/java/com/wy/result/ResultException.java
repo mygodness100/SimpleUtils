@@ -28,6 +28,10 @@ public class ResultException extends RuntimeException {
 		this(code, message, null);
 	}
 
+	public ResultException(Throwable e) {
+		this(0, e);
+	}
+
 	public ResultException(int code, Throwable ex) {
 		this(code, ex.getMessage(), ex);
 	}

@@ -30,6 +30,12 @@
 //			<artifactId>sdk</artifactId>
 //			<version>1.0.2</version>
 //		</dependency>
+//<!-- https://mvnrepository.com/artifact/org.bytedeco.javacpp-presets/ffmpeg -->
+//<dependency>
+//    <groupId>org.bytedeco.javacpp-presets</groupId>
+//    <artifactId>ffmpeg</artifactId>
+//    <version>4.1-1.4.4</version>
+//</dependency>
 // * @author ParadiseWY
 // * @date 2020年3月28日 下午7:58:53
 // */

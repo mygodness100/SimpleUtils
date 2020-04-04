@@ -3,6 +3,8 @@ package com.wy.utils;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.wy.enums.RegexEnum;
 import com.wy.result.ResultException;
 
@@ -14,42 +16,13 @@ import com.wy.result.ResultException;
  *          +表示可出现多个相同的任意字符,$1表示将分组中的.所代表的任意字符串替换到$1,$2则表示替换第二个分组
  * @author wanyang 2018年7月7日
  */
-public class StrUtils {
+public class StrUtils extends StringUtils {
 
 	private static final Pattern linePattern = Pattern.compile("_(\\w)");
 
 	private static final Pattern humpPattern = Pattern.compile("[A-Z]");
 
 	private StrUtils() {
-	}
-
-	/**
-	 * 字符串是否为空,空字符串也判断为空
-	 */
-	public static boolean isBlank(CharSequence str) {
-		if (str == null || str.length() == 0) {
-			return true;
-		}
-		int length = str.length();
-		for (int i = 0; i < length; i++) {
-			if (!Character.isWhitespace(str.charAt(i))) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	public static boolean isNotBlank(CharSequence str) {
-		return !isBlank(str);
-	}
-
-	public static boolean isBlank(CharSequence... args) {
-		for (CharSequence arg : args) {
-			if (isNotBlank(arg)) {
-				return false;
-			}
-		}
-		return true;
 	}
 
 	public static boolean isNotBlank(CharSequence... args) {
@@ -66,10 +39,6 @@ public class StrUtils {
 	 */
 	public static boolean isBlanks(String[] array) {
 		return array == null || array.length == 0;
-	}
-
-	public static boolean isNotBlanks(String[] array) {
-		return !isBlank(array);
 	}
 
 	/**
@@ -161,27 +130,6 @@ public class StrUtils {
 	}
 
 	/**
-	 * 去掉字符串中所有的空格, 换行,制表符
-	 */
-	public static String removeSpace(CharSequence str) {
-		if (isBlank(str)) {
-			return null;
-		}
-		final int sz = str.length();
-		final char[] chs = new char[sz];
-		int count = 0;
-		for (int i = 0; i < sz; i++) {
-			if (!Character.isWhitespace(str.charAt(i))) {
-				chs[count++] = str.charAt(i);
-			}
-		}
-		if (count == sz) {
-			return str.toString();
-		}
-		return new String(chs, 0, count);
-	}
-
-	/**
 	 * 判断一个字符串中是否含有另外一个字符串,不区分大小写
 	 * @param src 原字符串
 	 * @param des 需要检索的字符串
@@ -211,7 +159,7 @@ public class StrUtils {
 			matcher.appendReplacement(sb, matcher.group(1).toUpperCase());
 		}
 		matcher.appendTail(sb);
-		return changeFirst(sb.toString(),false);
+		return changeFirst(sb.toString(), false);
 	}
 
 	/**
