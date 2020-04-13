@@ -1,5 +1,8 @@
 package com.wy.io;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -11,6 +14,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
 
@@ -22,6 +26,7 @@ public class ImageUtils {
 
 	// 标准A4的宽
 	private static final Integer A4_WEIGHT = 595 - 60;
+
 	// 标准A4的高
 	private static final Integer A4_HEIGHT = 842 - 60;
 
@@ -91,10 +96,8 @@ public class ImageUtils {
 			Arrays.sort(images);
 			int len = images.length;
 			for (int i = 0; i < len; i++) {
-				if (images[i].toLowerCase().endsWith(".bmp")
-						|| images[i].toLowerCase().endsWith(".jpg")
-						|| images[i].toLowerCase().endsWith(".jpeg")
-						|| images[i].toLowerCase().endsWith(".gif")
+				if (images[i].toLowerCase().endsWith(".bmp") || images[i].toLowerCase().endsWith(".jpg")
+						|| images[i].toLowerCase().endsWith(".jpeg") || images[i].toLowerCase().endsWith(".gif")
 						|| images[i].toLowerCase().endsWith(".png")) {
 					com.itextpdf.text.Image img = com.itextpdf.text.Image
 							.getInstance(filePath + File.separator + images[i]);
@@ -130,8 +133,7 @@ public class ImageUtils {
 	public static boolean waterMark(String waterFile, String srcImg, String desImg, int x, int y) {
 		FileOutputStream fos = null;
 		String lowerImage = waterFile.toLowerCase();
-		if (lowerImage.endsWith(".png") || lowerImage.endsWith(".jpg")
-				|| lowerImage.endsWith(".jpeg")) {
+		if (lowerImage.endsWith(".png") || lowerImage.endsWith(".jpg") || lowerImage.endsWith(".jpeg")) {
 			try {
 				// 转换成图片对象
 				Image image = ImageIO.read(new File(waterFile));
@@ -145,8 +147,7 @@ public class ImageUtils {
 				int targetHeight = target.getHeight(null);
 
 				// 创建一块画板,画板的宽高,三原色
-				BufferedImage bi = new BufferedImage(targetWidth, targetHeight,
-						BufferedImage.TYPE_INT_RGB);
+				BufferedImage bi = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
 				// 创建画笔
 				Graphics2D g2d = bi.createGraphics();
 				// 绘制底图,底图,从x,y坐标是开始画,宽高
@@ -170,5 +171,70 @@ public class ImageUtils {
 			return false;
 		}
 		return false;
+	}
+
+	/**
+	 * 生成验证码
+	 * 
+	 * @param os 验证码生成时输出的流
+	 * @param width 验证码生成的宽度,默认120px
+	 * @param height 验证码生成的高度,默认35px
+	 * @param length 验证码的长度,默认4位
+	 * @return 生成的验证码,若返回null表示验证码生成失败
+	 */
+	public static String obtainVerifyImage(OutputStream os, int width, int height, int length) {
+		width = width <= 0 ? 120 : width;
+		height = height <= 0 ? 35 : height;
+		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		Graphics g = image.getGraphics();
+		Random random = new Random();
+		g.setColor(getRandColor(200, 250));
+		g.fillRect(0, 0, width, height);
+		g.setFont(new Font("Times New Roman", Font.ITALIC, 20));
+		g.setColor(getRandColor(160, 200));
+		for (int i = 0; i < 155; i++) {
+			int x = random.nextInt(width);
+			int y = random.nextInt(height);
+			int xl = random.nextInt(12);
+			int yl = random.nextInt(12);
+			g.drawLine(x, y, x + xl, y + yl);
+		}
+		String code = "";
+		length = length <= 0 ? 4 : length;
+		for (int i = 0; i < length; i++) {
+			String rand = String.valueOf(random.nextInt(10));
+			code += rand;
+			g.setColor(new Color(20 + random.nextInt(110), 20 + random.nextInt(110), 20 + random.nextInt(110)));
+			g.drawString(rand, 13 * i + 6, 16);
+		}
+		g.dispose();
+		try {
+			ImageIO.write(image, "jpeg", os);
+			return code;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 生成随机背景条纹
+	 * 
+	 * @param fc
+	 * @param bc
+	 * @return
+	 */
+	private static Color getRandColor(int fc, int bc) {
+		Random random = new Random();
+		if (fc > 255) {
+			fc = 255;
+		}
+		if (bc > 255) {
+			bc = 255;
+		}
+		int r = fc + random.nextInt(bc - fc);
+		int g = fc + random.nextInt(bc - fc);
+		int b = fc + random.nextInt(bc - fc);
+		return new Color(r, g, b);
 	}
 }
