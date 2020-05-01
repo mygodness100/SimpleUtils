@@ -7,27 +7,34 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import com.wy.common.Constant;
 import com.wy.enums.TipsEnum;
+import com.wy.excel.annotation.Excel;
+import com.wy.excel.annotation.ExcelRelated;
 import com.wy.result.ResultException;
-import com.wy.utils.ClassUtils;
 import com.wy.utils.ListUtils;
 import com.wy.utils.StrUtils;
 
@@ -38,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
  * 需要导入包:poi-3.17,commons-codec-1.10,commons-collections4-4.1,commons-logging-1.2,log4j-1.2.17
  * XSSFWorkbook是操作Excel2007的版本,扩展名是.xlsx
  * xmlbeans-2.6.0,curvesapi-1.04,poi-ooxml-schemas-3.17,poi-ooxml-3.17
+ * 所有的方法都暂时没有考虑类上的注解
  * 
  * @author paradiseWy
  */
@@ -94,50 +102,139 @@ public class ExcelUtils {
 	 * @param path 以.xls或xlsx结尾的文件路径
 	 * @param list 实体类数据源集合
 	 */
-	public static <T> boolean writeExcel(List<T> list, String path) {
-		return writeExcel(list, path, true);
+	public static <T> void writeExcel(List<T> list, String path) {
+		writeExcel(list, path, true);
 	}
 
 	/**
-	 * 根据excel文件的结尾判断生成那种版本的excel,若未指定类型,自动归结为低版本excel
+	 * 将数据写入excel文件,根据excel文件的结尾判断生成那种版本的excel,若未指定类型,自动归结为低版本excel
 	 * 
-	 * @param path    以.xls或xlsx结尾的文件路径
-	 * @param list    实体类数据源集合
+	 * @param path 以.xls或xlsx结尾的文件路径
+	 * @param list 实体类数据源集合
 	 * @param subject 是否添加字段名称,true添加false不添加,默认添加
 	 */
-	public static <T> boolean writeExcel(List<T> list, String path, boolean subject) {
-		if (StrUtils.isBlank(path) || ListUtils.isBlank(list)) {
-			log.info("路径不存在或数据源为空!");
-			return false;
+	public static <T> void writeExcel(List<T> list, String path, boolean subject) {
+		if (ListUtils.isBlank(list)) {
+			log.info(TipsEnum.TIP_LOG_INFO.getMsg("excel写入文件数据源为空"));
+			return;
 		}
+		if (StrUtils.isBlank(path)) {
+			log.info(TipsEnum.TIP_LOG_ERROR.getMsg("excel写入文件路径不存在"));
+			throw new ResultException("路径不存在");
+		}
+		double sheetNum = Math.ceil(list.size() / Constant.EXCEL_SHEET_MAX);
+		for (int i = 0; i < sheetNum; i++) {
+			handleSheet(i, list, path, subject);
+		}
+	}
+
+	/**
+	 * 处理每一个sheet页
+	 * 
+	 * @param <T> 泛型
+	 * @param index sheet页下标
+	 * @param list 数据集
+	 * @param path 写文件路径
+	 * @param subject 是否需要第一排的标题
+	 */
+	public static <T> void handleSheet(int index, List<T> list, String path, boolean subject) {
 		try (FileOutputStream fos = new FileOutputStream(path); Workbook workbook = createWorkbook(path);) {
 			Sheet sheet = workbook.createSheet();
 			int beginRow = subject ? 1 : 0;
 			Class<?> clazz = list.get(0).getClass();
-			List<String> allField = ClassUtils.getEntityField(clazz);
-			for (int i = 0; i < list.size(); i++) {
+			List<Field> fields = handleClass(clazz);
+			int startNo = index * Constant.EXCEL_SHEET_MAX;
+			int endNo = Math.min(startNo + Constant.EXCEL_SHEET_MAX, list.size());
+			for (int i = startNo; i < endNo; i++) {
 				Row row = sheet.createRow(beginRow);
 				T t = list.get(i);
-				for (int j = 0; j < allField.size(); j++) {
-					Field field = clazz.getDeclaredField(allField.get(j));
-					field.setAccessible(true);
-					Cell cell = row.createCell(j);
-					if (!Objects.isNull(field.get(t)) && Date.class == field.getType()) {
-						cell.setCellValue((Date) field.get(t));
-					} else {
-						cell.setCellValue(Objects.toString(field.get(t), ""));
-					}
+				for (int j = 0; j < fields.size(); j++) {
+					handleCell(row.createCell(j), t, fields.get(j));
 				}
 				beginRow++;
 			}
 			if (subject) {
-				createFirst(sheet, allField);
+				createFirst(sheet, fields);
 			}
 			workbook.write(fos);
-			return true;
-		} catch (IOException | NoSuchFieldException | SecurityException | IllegalAccessException e) {
+		} catch (IOException | SecurityException e) {
 			e.printStackTrace();
-			return false;
+		}
+	}
+
+	/**
+	 * 从类中筛选出需要导出的字段
+	 * 
+	 * @param <T> 需要导出的泛型
+	 * @param clazz 泛型的字节码
+	 * @return 需要导出的字段集合
+	 */
+	public static <T> List<Field> handleClass(Class<T> clazz) {
+		List<Field> result = new ArrayList<>();
+		Field[] parentFields = clazz.getSuperclass().getDeclaredFields();
+		if (ArrayUtils.isNotEmpty(parentFields)) {
+			result.addAll(Arrays.asList(parentFields));
+		}
+		Field[] childFields = clazz.getDeclaredFields();
+		if (ArrayUtils.isEmpty(childFields)) {
+			throw new ResultException("该类中没有定义字段,请检查");
+		} else {
+			result.addAll(Arrays.asList(childFields));
+		}
+		return result.stream()
+				.filter(t -> t.isAnnotationPresent(Excel.class) || t.isAnnotationPresent(ExcelRelated.class))
+				.collect(Collectors.toList());
+	}
+
+	/**
+	 * 处理每一个单元格
+	 * 
+	 * @param <T> 泛型
+	 * @param cell 单元格
+	 * @param t 需要写入到单元格的数据
+	 * @param field 当前字段
+	 */
+	public static <T> void handleCell(Cell cell, T t, Field field) {
+		field.setAccessible(true);
+		try {
+			if (field.isAnnotationPresent(ExcelRelated.class)) {
+				handleRelatedCell(cell, t, field);
+			} else {
+				setCellValue(cell, field.get(t));
+			}
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 给关联类中的字段进行赋值,若有值则赋值,若无值则填""
+	 * 
+	 * @param <T> 泛型
+	 * @param cell excel的单元格
+	 * @param t 数据
+	 * @param field 字段
+	 */
+	public static <T> void handleRelatedCell(Cell cell, T t, Field field) {
+		try {
+			Object related = field.get(t);
+			Excel[] excels = field.getAnnotation(ExcelRelated.class).value();
+			if (Objects.nonNull(related)) {
+				for (Excel excel : excels) {
+					Field declaredField = related.getClass().getDeclaredField(excel.relatedAttribute());
+					if (Objects.isNull(declaredField)) {
+						throw new ResultException(TipsEnum.TIP_LOG_ERROR.getMsg("excel操作关联类中relatedAttribute属性设置错误"));
+					}
+					declaredField.setAccessible(true);
+					setCellValue(cell, declaredField.get(related));
+				}
+			} else {
+				for (int i = 0; i < excels.length; i++) {
+					setCellValue(cell, null);
+				}
+			}
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -145,15 +242,27 @@ public class ExcelUtils {
 	 * 处理第一行的标题
 	 * 
 	 * @param sheet sheet页
-	 * @param datas 第一行的数据
+	 * @param fields 第一行的字段
 	 */
-	public static void createFirst(Sheet sheet, Collection<String> datas) {
+	public static void createFirst(Sheet sheet, List<Field> fields) {
 		Row first = sheet.createRow(0);
-		int j = 0;
-		for (String data : datas) {
-			Cell cell = first.createCell(j);
-			cell.setCellValue(data);
-			j++;
+		for (int i = 0; i < fields.size(); i++) {
+			Cell cell = first.createCell(i);
+			Field field = fields.get(i);
+			field.setAccessible(true);
+			if (field.isAnnotationPresent(Excel.class)) {
+				String title = StrUtils.isBlank(field.getAnnotation(Excel.class).value()) ? field.getName()
+						: field.getAnnotation(Excel.class).value();
+				cell.setCellValue(title);
+			} else if (field.isAnnotationPresent(ExcelRelated.class)) {
+				Excel[] excels = field.getAnnotation(ExcelRelated.class).value();
+				for (Excel excel : excels) {
+					if (StrUtils.isBlank(excel.value()) && StrUtils.isBlank(excel.relatedAttribute())) {
+						throw new ResultException(TipsEnum.TIP_LOG_ERROR.getMsg("关联字段缺少value或targetAttr"));
+					}
+					cell.setCellValue(StrUtils.getTernary(excel.value(), excel.relatedAttribute()));
+				}
+			}
 		}
 	}
 
@@ -170,8 +279,8 @@ public class ExcelUtils {
 	/**
 	 * 根据excel文件的结尾判断生成那种版本的excel,若未指定类型,自动归结为低版本excel
 	 * 
-	 * @param path    以.xls或xlsx结尾的文件路径
-	 * @param list    map类数据源集合
+	 * @param path 以.xls或xlsx结尾的文件路径
+	 * @param list map类数据源集合
 	 * @param subject 是否添加字段名称,true添加false不添加,默认添加
 	 */
 	public static boolean writeExcel(String path, List<Map<String, Object>> list, boolean subject) {
@@ -234,7 +343,7 @@ public class ExcelUtils {
 	 * 写入一个xls结尾的excel文件,低版本的excel,Excel2003以前(包括2003)的版本
 	 * 
 	 * @param excel 数据源
-	 * @param path  写入文件路径
+	 * @param path 写入文件路径
 	 */
 	public static boolean writeXLS(String path, List<List<Object>> datas) {
 		List<List<List<Object>>> excel = new ArrayList<>();
@@ -246,7 +355,7 @@ public class ExcelUtils {
 	 * 写入一个xls结尾的excel文件,低版本的excel,Excel2003以前(包括2003)的版本
 	 * 
 	 * @param excel 数据源
-	 * @param path  写入文件路径
+	 * @param path 写入文件路径
 	 */
 	public static boolean writeXLS(List<List<List<Object>>> excel, String path) {
 		return writeExcel(new HSSFWorkbook(), excel, path);
@@ -256,7 +365,7 @@ public class ExcelUtils {
 	 * 写入一个xlsx结尾的excel文件,高版本的excel,Excel2007的版本
 	 * 
 	 * @param excel 数据源
-	 * @param path  写入文件路径
+	 * @param path 写入文件路径
 	 */
 	public static boolean writeXLSX(String path, List<List<Object>> datas) {
 		List<List<List<Object>>> excel = new ArrayList<>();
@@ -268,7 +377,7 @@ public class ExcelUtils {
 	 * 写入一个xlsx结尾的excel文件,高版本的excel,Excel2007的版本
 	 * 
 	 * @param excel 数据源
-	 * @param path  写入文件路径
+	 * @param path 写入文件路径
 	 */
 	public static boolean writeXLSX(List<List<List<Object>>> excel, String path) {
 		return writeExcel(new XSSFWorkbook(), excel, path);
@@ -278,7 +387,7 @@ public class ExcelUtils {
 	 * 将数据写入一个excel表中,表以低版本为主,即以xls结尾,默认无字段栏
 	 * 
 	 * @param excel 数据源
-	 * @param path  写入文件路径
+	 * @param path 写入文件路径
 	 */
 	public static boolean writeExcel(Workbook wb, List<List<List<Object>>> datas, String path) {
 		return writeExcel(wb, datas, path, null);
@@ -331,9 +440,9 @@ public class ExcelUtils {
 	/**
 	 * 读取excel中的数据.第一行不计入数据,从2行第1列开始读取数据
 	 * 
-	 * @param path     文件地址
+	 * @param path 文件地址
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles   当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
 	 * @return list集合
 	 */
 	public static List<Map<String, Object>> readExcel(String path, boolean firstUse, List<String> titles) {
@@ -343,9 +452,9 @@ public class ExcelUtils {
 	/**
 	 * 读取excel中的数据.excel的第一行作为key值,不计入数据,从第beginRow+2行第1列开始读取数据
 	 * 
-	 * @param path     文件地址
+	 * @param path 文件地址
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles   当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
 	 * @param beginRow 从第beginRow+2行开始读取数据
 	 * @return list集合
 	 */
@@ -357,9 +466,9 @@ public class ExcelUtils {
 	/**
 	 * 读取excel中的数据.excel的第一行作为key值,不计入数据,从第beginRow+2行第beginCol+1列开始读取数据
 	 * 
-	 * @param path     需要读取的excel路径
+	 * @param path 需要读取的excel路径
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles   当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
 	 * @param beginRow 从第beginRow+2行开始读取数据
 	 * @param beginCol 从第beginCol+1列开始读取excel
 	 * @return 结果集
@@ -396,9 +505,9 @@ public class ExcelUtils {
 	/**
 	 * 读取excel中的数据.第一行不计入数据,从2行第1列开始读取数据
 	 * 
-	 * @param is       输入流
+	 * @param is 输入流
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles   当firstUse为true时,该值不使用.若是false,则该值为字段名或key值的集合,但是第一行数据仍不使用
+	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值的集合,但是第一行数据仍不使用
 	 * @return 结果集
 	 */
 	public static List<Map<String, Object>> readExcel(InputStream is, boolean firstUse, List<String> titles) {
@@ -408,9 +517,9 @@ public class ExcelUtils {
 	/**
 	 * 读取excel中的数据.excel的第一行作为key值,不计入数据,从第beginRow+2行第1列开始读取数据
 	 * 
-	 * @param is       输入流
+	 * @param is 输入流
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles   当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
 	 * @param beginRow 从第beginRow+2行开始读取excel
 	 * @return 结果集
 	 */
@@ -422,9 +531,9 @@ public class ExcelUtils {
 	/**
 	 * 读取excel中的数据.excel的第一行作为key值,不计入数据,从第beginRow+2行第beginCol+1列开始读取数据
 	 * 
-	 * @param is       输入流
+	 * @param is 输入流
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles   当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
 	 * @param beginRow 从第beginRow+2行开始读取excel数据
 	 * @param beginCol 从第beginCol+1列开始读取excel
 	 * @return 结果集
@@ -451,9 +560,9 @@ public class ExcelUtils {
 	/**
 	 * 读取excel中的数据
 	 * 
-	 * @param sheet    每一个sheet页中的数据
+	 * @param sheet 每一个sheet页中的数据
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
-	 * @param titles   当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
+	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
 	 * @param beginRow 从第beginRow+2行开始读取excel数据
 	 * @param beginCol 从第beginCol+1列开始读取excel
 	 * @return 结果集
@@ -473,7 +582,7 @@ public class ExcelUtils {
 		for (int j = beginRow + 1; j < rows + 1; j++) {
 			Map<String, Object> rowData = new HashMap<>();
 			for (int k = beginCol; k < cellNum; k++) {
-				Object cellVal = handlerCell(sheet.getRow(j).getCell(k));
+				Object cellVal = getCellValue(sheet.getRow(j).getCell(k));
 				if (firstUse) {
 					rowData.put(String.valueOf(first.getCell(k)), cellVal);
 				} else {
@@ -489,24 +598,45 @@ public class ExcelUtils {
 		return res;
 	}
 
-	private static Object handlerCell(Cell cell) {
+	public static Object getCellValue(Cell cell) {
 		if (Objects.isNull(cell)) {
-			return null;
+			return cell.getErrorCellValue();
+		}
+		if (HSSFDateUtil.isCellDateFormatted(cell)) {
+			return cell.getDateCellValue();
 		}
 		switch (cell.getCellTypeEnum()) {
-		case BLANK:
-		case _NONE:
-			return null;
-		case BOOLEAN:
-			return cell.getBooleanCellValue();
-		case NUMERIC:
-			return cell.getNumericCellValue();
-		case STRING:
-			return cell.getStringCellValue();
-		case FORMULA:
-			return cell.getRichStringCellValue().getString();
-		default:
-			return null;
+			case BOOLEAN:
+				return cell.getBooleanCellValue();
+			case NUMERIC:
+				return cell.getNumericCellValue();
+			case STRING:
+				return cell.getStringCellValue();
+			case FORMULA:
+				if (cell.getCachedFormulaResultTypeEnum() == CellType.NUMERIC) {
+					return cell.getNumericCellValue();
+				} else {
+					return cell.getRichStringCellValue().getString();
+				}
+			default:
+				return cell.getErrorCellValue();
+		}
+	}
+
+	public static void setCellValue(Cell cell, Object value) {
+		if (Objects.isNull(value)) {
+			cell.setCellValue("");
+			return;
+		}
+		Class<? extends Object> clazz = value.getClass();
+		if (clazz == Date.class) {
+			cell.setCellValue((Date) value);
+		} else if (clazz == Boolean.class || clazz == boolean.class) {
+			cell.setCellValue(Boolean.parseBoolean(clazz.toString()));
+		} else if (NumberUtils.isCreatable(value.toString())) {
+			cell.setCellValue(Double.valueOf(value.toString()));
+		} else {
+			cell.setCellValue(value.toString());
 		}
 	}
 }

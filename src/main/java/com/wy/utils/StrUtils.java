@@ -11,6 +11,7 @@ import com.wy.result.ResultException;
 /**
  * 字符串帮助类 正则表达式的分组: @ (),每一个对括号表示一个分组,分组的顺序是从左括号出现的顺序, @
  * $后面加一个数字表示对应某一个分组,替代分组中不可直接表达的字符串
+ * 
  * @example 快快乐乐 去掉叠词为快乐,pattern((.)\\1+,$1):
  *          第一个括号表示第一个分组中的任意字符;\\1表示第一个分组,\\2表示第2个分组,需要紧跟在分组之后
  *          +表示可出现多个相同的任意字符,$1表示将分组中的.所代表的任意字符串替换到$1,$2则表示替换第二个分组
@@ -37,7 +38,7 @@ public class StrUtils extends StringUtils {
 	/**
 	 * 判断数组是否为空,不判断数组中的数据是否为空
 	 */
-	public static boolean isBlanks(String[] array) {
+	public static boolean isBlank(String[] array) {
 		return array == null || array.length == 0;
 	}
 
@@ -71,6 +72,7 @@ public class StrUtils extends StringUtils {
 
 	/**
 	 * 合法性检查
+	 * 
 	 * @param des 目标字符串
 	 * @param type 检查类型,手机号,qq号等
 	 */
@@ -83,6 +85,7 @@ public class StrUtils extends StringUtils {
 
 	/**
 	 * 合法性检查
+	 * 
 	 * @param des 目标字符串
 	 * @param pattern 检查类型
 	 */
@@ -131,6 +134,7 @@ public class StrUtils extends StringUtils {
 
 	/**
 	 * 判断一个字符串中是否含有另外一个字符串,不区分大小写
+	 * 
 	 * @param src 原字符串
 	 * @param des 需要检索的字符串
 	 */
@@ -214,6 +218,12 @@ public class StrUtils extends StringUtils {
 		return null;
 	}
 
+	/**
+	 * 将多个参数连接起来
+	 * 
+	 * @param msgs 参数
+	 * @return 最终的字符串
+	 */
 	public static String formatBuffer(Object... msgs) {
 		StringBuffer builder = new StringBuffer();
 		for (Object msg : msgs) {
@@ -222,6 +232,27 @@ public class StrUtils extends StringUtils {
 		return builder.toString();
 	}
 
+	/**
+	 * 用同一个分隔符将参数连接起来
+	 * 
+	 * @param delimiter 分隔符
+	 * @param msgs 参数
+	 * @return 最终的字符串
+	 */
+	public static String formatBuffer(String delimiter, Object... msgs) {
+		StringBuffer builder = new StringBuffer();
+		for (Object msg : msgs) {
+			builder.append(delimiter).append(msg);
+		}
+		return builder.toString();
+	}
+
+	/**
+	 * 将多个参数连接起来
+	 * 
+	 * @param msgs 参数
+	 * @return 最终的字符串
+	 */
 	public static String formatBuilder(Object... msgs) {
 		StringBuilder builder = new StringBuilder();
 		for (Object msg : msgs) {
@@ -231,7 +262,23 @@ public class StrUtils extends StringUtils {
 	}
 
 	/**
+	 * 用同一个分隔符将参数连接起来
+	 * 
+	 * @param delimiter 分隔符
+	 * @param msgs 参数
+	 * @return 最终的字符串
+	 */
+	public static String formatBuilder(String delimiter, Object... msgs) {
+		StringBuilder builder = new StringBuilder();
+		for (Object msg : msgs) {
+			builder.append(delimiter).append(msg);
+		}
+		return builder.toString();
+	}
+
+	/**
 	 * 获得类似三元表达式的结果
+	 * 
 	 * @param str1 若str1不为null,不为"",则返回str1.否则返回str2
 	 * @param str2 若str1不存在时,返回str2
 	 * @return 结果

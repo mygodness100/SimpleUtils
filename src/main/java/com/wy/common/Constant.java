@@ -5,10 +5,16 @@ package com.wy.common;
  * 
  * @author paradiseWy 2018年8月31日
  */
-public class Constant {
+public interface Constant {
 
-	public static final String[] MONEY_NUM =
-			new String[] { "零", "壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖", "拾", "佰", "仟", "万", "亿" };
-	public static final String[] MONEY_UNIT =
-			new String[] { "分", "角", "元", "拾", "佰", "仟", "万", "拾", "佰", "仟", "亿", "拾", "佰", "仟", "兆", "拾", "佰", "仟" };
+	String[] MONEY_NUM = new String[] { "零", "壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖", "拾", "佰", "仟", "万", "亿" };
+
+	String[] MONEY_UNIT = new String[] { "分", "角", "元", "拾", "佰", "仟", "万", "拾", "佰", "仟", "亿", "拾", "佰", "仟", "兆", "拾",
+			"佰", "仟" };
+
+	/**
+	 * excel的sheet页中的最大行数
+	 */
+	int EXCEL_SHEET_MAX = 65535;
+
 }

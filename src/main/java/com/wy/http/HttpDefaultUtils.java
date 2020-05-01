@@ -20,10 +20,13 @@ import com.wy.utils.MapUtils;
 import com.wy.utils.StrUtils;
 
 public class HttpDefaultUtils {
+
 	// post默认请求方式
 	private static final String DEFAULT_CONTENTTYPE = "text/html;charset=utf8;application/x-www-form-urlencoded;";
+
 	// 默认字符编码
 	private static final String DEFAULT_CHARSET = Encoding.UTF8;
+
 	// 默认超时时间,1分钟
 	private static final int TIMEOUT = 60000;
 
@@ -54,6 +57,7 @@ public class HttpDefaultUtils {
 
 	/**
 	 * get请求,默认不编码
+	 * 
 	 * @param params:参数
 	 */
 	public static Object sendGet(String desUrl, Map<String, Object> params) {
@@ -62,6 +66,7 @@ public class HttpDefaultUtils {
 
 	/**
 	 * get请求,默认请求头application/json;charset=utf8
+	 * 
 	 * @param params:参数
 	 * @param isEncode:是否编码,false不编码
 	 */
@@ -71,19 +76,19 @@ public class HttpDefaultUtils {
 
 	/**
 	 * get请求,默认请求头application/json;charset=utf8
+	 * 
 	 * @param params:参数
 	 * @param isEncode:是否编码,false不编码
 	 */
-	public static Object sendGet(String desUrl, Map<String, Object> params, boolean isEncode,
-			String charset) {
+	public static Object sendGet(String desUrl, Map<String, Object> params, boolean isEncode, String charset) {
 		return sendGet(desUrl, params, isEncode, charset, TIMEOUT);
 	}
 
 	/**
 	 * 发送get请求,只适合基本类型参数组成的map
 	 */
-	public static Object sendGet(String desUrl, Map<String, Object> params, boolean isEncode,
-			String charset, int timeout) {
+	public static Object sendGet(String desUrl, Map<String, Object> params, boolean isEncode, String charset,
+			int timeout) {
 		try {
 			String encodeUrl = createParams(desUrl, params, isEncode);
 			URL url = new URL(encodeUrl);
@@ -108,8 +113,7 @@ public class HttpDefaultUtils {
 			// 获得响应状态
 			int respCode = conn.getResponseCode();
 			if (HttpURLConnection.HTTP_OK == respCode) {
-				BufferedReader br = new BufferedReader(
-						new InputStreamReader(conn.getInputStream(), "utf-8"));
+				BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"));
 				String line = null;
 				StringBuffer sb = new StringBuffer();
 				while ((line = br.readLine()) != null) {
@@ -140,48 +144,47 @@ public class HttpDefaultUtils {
 	}
 
 	/**
-	 * 发送get请求,参数为pj
+	 * 发送get请求,参数为实体类
 	 */
-	public static <T> Object sendPost(String desUrl, T t) {
-		if (t.getClass().isSynthetic()) {
-			Map<String, Object> map = ClassUtils.beanToMap(t);
-			return sendPost(desUrl, map);
-		}
-		return null;
+	public static <T> String sendPost(String desUrl, T t) {
+		Map<String, Object> map = ClassUtils.beanToMap(t);
+		return sendPost(desUrl, map);
 	}
 
 	/**
 	 * get请求,默认不编码
+	 * 
 	 * @param params:参数
 	 */
-	public static Object sendPost(String desUrl, Map<String, Object> params) {
+	public static String sendPost(String desUrl, Map<String, Object> params) {
 		return sendPost(desUrl, params, DEFAULT_CONTENTTYPE);
 	}
 
 	/**
 	 * get请求,默认请求头application/json;charset=utf8
+	 * 
 	 * @param params:参数
 	 * @param isEncode:是否编码,false不编码
 	 */
-	public static Object sendPost(String desUrl, Map<String, Object> params, String contentType) {
+	public static String sendPost(String desUrl, Map<String, Object> params, String contentType) {
 		return sendPost(desUrl, params, contentType, DEFAULT_CHARSET);
 	}
 
 	/**
 	 * get请求,默认请求头application/json;charset=utf8
+	 * 
 	 * @param params:参数
 	 * @param isEncode:是否编码,false不编码
 	 */
-	public static Object sendPost(String desUrl, Map<String, Object> params, String contentType,
-			String charset) {
+	public static String sendPost(String desUrl, Map<String, Object> params, String contentType, String charset) {
 		return sendPost(desUrl, params, contentType, charset, TIMEOUT);
 	}
 
 	/**
 	 * 发送post请求
 	 */
-	public static Object sendPost(String desUrl, Map<String, Object> params, String contentType,
-			String charset, int timeout) {
+	public static String sendPost(String desUrl, Map<String, Object> params, String contentType, String charset,
+			int timeout) {
 		try {
 			URL url = new URL(desUrl);
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -194,13 +197,11 @@ public class HttpDefaultUtils {
 			// 设置属性请求
 			// 维持长连接
 			conn.setRequestProperty("Connection", "keep-Alive");
-			conn.setRequestProperty("charset",
-					charset = StrUtils.isBlank(charset) ? DEFAULT_CHARSET : charset);
+			conn.setRequestProperty("charset", charset = StrUtils.isBlank(charset) ? DEFAULT_CHARSET : charset);
 			conn.setRequestProperty("Content-Encoding", "gzip");
 			conn.setRequestProperty("Contert-length", String.valueOf(desUrl.length()));
 			conn.setRequestProperty("Content-type",
-					contentType = StrUtils.isBlank(contentType) ? DEFAULT_CONTENTTYPE
-							: contentType);
+					contentType = StrUtils.isBlank(contentType) ? DEFAULT_CONTENTTYPE : contentType);
 			conn.connect();
 			if (MapUtils.isNotBlank(params)) {
 				// 参数输出
@@ -216,8 +217,7 @@ public class HttpDefaultUtils {
 			// 获得响应状态
 			int respCode = conn.getResponseCode();
 			if (HttpURLConnection.HTTP_OK == respCode) {
-				BufferedReader br = new BufferedReader(
-						new InputStreamReader(conn.getInputStream(), "utf-8"));
+				BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"));
 				String line = null;
 				StringBuffer sb = new StringBuffer();
 				while ((line = br.readLine()) != null) {
@@ -225,7 +225,7 @@ public class HttpDefaultUtils {
 				}
 				br.close();
 				conn.disconnect();
-				return JSON.parseObject(sb.toString());
+				return sb.toString();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -235,6 +235,7 @@ public class HttpDefaultUtils {
 
 	/**
 	 * 发送请求
+	 * 
 	 * @param type:请求方式
 	 * @param params:参数
 	 * @param contentType:请求的contenttype
@@ -270,8 +271,7 @@ public class HttpDefaultUtils {
 	/**
 	 * 参数拼接
 	 */
-	public static String createParams(Map<String, Object> params, boolean isEncode,
-			String charset) {
+	public static String createParams(Map<String, Object> params, boolean isEncode, String charset) {
 		List<String> list = new ArrayList<>();
 		for (String key : params.keySet()) {
 			if (isEncode) {
@@ -304,6 +304,7 @@ public class HttpDefaultUtils {
 
 	/**
 	 * 文件下载
+	 * 
 	 * @param downloadAddress 下载地址
 	 * @param desFile 本地存储地址
 	 */
@@ -313,6 +314,7 @@ public class HttpDefaultUtils {
 
 	/**
 	 * 文件下载
+	 * 
 	 * @param downloadAddress 下载地址
 	 * @param desFile 本地存储地址
 	 */
@@ -322,6 +324,7 @@ public class HttpDefaultUtils {
 
 	/**
 	 * 文件下载
+	 * 
 	 * @param downloadAddress 下载地址
 	 * @param desFile 本地存储地址
 	 * @param threadCount 下载线程数
@@ -332,6 +335,7 @@ public class HttpDefaultUtils {
 
 	/**
 	 * 文件下载
+	 * 
 	 * @param downloadAddress 文件下载地址
 	 * @param desFile 本地存储地址
 	 * @param threadCount 下载线程数
@@ -342,13 +346,13 @@ public class HttpDefaultUtils {
 
 	/**
 	 * 文件下载
+	 * 
 	 * @param downloadAddress 文件下载地址
 	 * @param desFile 本地存储地址
 	 * @param threadCount 下载线程数
 	 * @param method 请求远程文件方式
 	 */
-	public static void httpDownload(String downloadAddress, File desFile, int threadCount,
-			String method) {
+	public static void httpDownload(String downloadAddress, File desFile, int threadCount, String method) {
 		HttpDownloads.download(downloadAddress, desFile, threadCount, method);
 	}
 

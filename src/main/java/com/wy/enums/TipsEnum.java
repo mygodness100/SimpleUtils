@@ -6,11 +6,13 @@ import com.wy.common.TipCode;
 
 /**
  * 提示或信息类,传入的信息不要带有双引号或单引号
+ * 
  * @description 信息提示
  * @author paradiseWy
  * @date 2019年4月1日 下午2:33:37
  */
 public enum TipsEnum implements TipCode {
+
 	TIP_LOGIN_USERNAME(0, "用户{0}不存在"),
 	TIP_PARAM_EMPTY(0, "参数{0}不能为空"),
 	TIP_LOG_ERROR(0, "@@@:{0}"),
@@ -40,7 +42,7 @@ public enum TipsEnum implements TipCode {
 		return getMsg("");
 	}
 
-	public String getMsg(Object... args) {
-		return MessageFormat.format(msg, args);
+	public String getMsg(String msg) {
+		return MessageFormat.format(this.msg, msg);
 	}
 }
