@@ -306,13 +306,29 @@ public class ExcelUtils {
 				beginRow++;
 			}
 			if (subject) {
-				createFirst(sheet, allField);
+				createFirst(allField, sheet);
 			}
 			workbook.write(fos);
 			return true;
 		} catch (IOException e) {
 			e.printStackTrace();
 			return false;
+		}
+	}
+
+	/**
+	 * 处理listmap中的第一行
+	 * 
+	 * @param titles 所有的字段,此处因为是map,不可标注注解,只能是字段名
+	 * @param sheet sheet页
+	 */
+	public static void createFirst(List<String> titles, Sheet sheet) {
+		Row first = sheet.createRow(0);
+		int j = 0;
+		for (String title : titles) {
+			Cell cell = first.createCell(j);
+			cell.setCellValue(title);
+			j++;
 		}
 	}
 
