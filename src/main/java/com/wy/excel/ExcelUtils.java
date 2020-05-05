@@ -30,10 +30,12 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import com.google.common.io.Files;
 import com.wy.common.Constant;
 import com.wy.enums.TipsEnum;
 import com.wy.excel.annotation.Excel;
 import com.wy.excel.annotation.ExcelRelated;
+import com.wy.excel.enums.ExcelHandle;
 import com.wy.result.ResultException;
 import com.wy.utils.ListUtils;
 import com.wy.utils.StrUtils;
@@ -45,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
  * 需要导入包:poi-3.17,commons-codec-1.10,commons-collections4-4.1,commons-logging-1.2,log4j-1.2.17
  * XSSFWorkbook是操作Excel2007的版本,扩展名是.xlsx
  * xmlbeans-2.6.0,curvesapi-1.04,poi-ooxml-schemas-3.17,poi-ooxml-3.17
- * 所有的方法都暂时没有考虑类上的注解
+ * FIXME 所有的方法都暂时没有考虑类上的注解,单元格可以添加注解,选择列表
  * 
  * @author paradiseWy
  */
@@ -53,25 +55,24 @@ import lombok.extern.slf4j.Slf4j;
 public class ExcelUtils {
 
 	/**
-	 * 根据文件后缀名生成相应的Workbook实例
+	 * 根据文件后缀名生成相应的Workbook实例,将数据写入到excel中使用
 	 * 
 	 * @param path 文件路径
 	 * @return Workbook实例
 	 */
-	public static Workbook createWorkbook(String path) {
+	public static Workbook generateWorkbook(String path) {
 		if (StrUtils.isBlank(path)) {
-			throw new ResultException("文件路径错误");
+			throw new ResultException(TipsEnum.TIP_LOG_ERROR.getMsg("文件路径错误"));
 		}
-		if (path.endsWith(".xlsx")) {
+		if (Objects.equals("xlsx", Files.getFileExtension(path))) {
 			return new XSSFWorkbook();
-		} else if (!path.endsWith(".xls") && !path.endsWith(".xlsx")) {
-			path += ".xls";
+		} else {
+			return new HSSFWorkbook();
 		}
-		return new HSSFWorkbook();
 	}
 
 	/**
-	 * 根据文件后缀名生成相应的Workbook实例,直接读取文件,设置输入流
+	 * 根据文件后缀名生成相应的Workbook实例,读取excel文件中的数据时使用
 	 * 
 	 * @param path 文件路径
 	 * @return Workbook实例
@@ -130,7 +131,7 @@ public class ExcelUtils {
 
 	/**
 	 * 处理每一个sheet页
-	 * 
+	 *
 	 * @param <T> 泛型
 	 * @param index sheet页下标
 	 * @param list 数据集
@@ -138,7 +139,7 @@ public class ExcelUtils {
 	 * @param subject 是否需要第一排的标题
 	 */
 	public static <T> void handleSheet(int index, List<T> list, String path, boolean subject) {
-		try (FileOutputStream fos = new FileOutputStream(path); Workbook workbook = createWorkbook(path);) {
+		try (FileOutputStream fos = new FileOutputStream(path); Workbook workbook = generateWorkbook(path);) {
 			Sheet sheet = workbook.createSheet();
 			int beginRow = subject ? 1 : 0;
 			Class<?> clazz = list.get(0).getClass();
@@ -181,9 +182,18 @@ public class ExcelUtils {
 		} else {
 			result.addAll(Arrays.asList(childFields));
 		}
-		return result.stream()
-				.filter(t -> t.isAnnotationPresent(Excel.class) || t.isAnnotationPresent(ExcelRelated.class))
-				.collect(Collectors.toList());
+		return result.stream().filter(t -> {
+			if (t.isAnnotationPresent(Excel.class)) {
+				if (t.getAnnotation(Excel.class).excelHandle() == ExcelHandle.EXPORT
+						|| t.getAnnotation(Excel.class).excelHandle() == ExcelHandle.ALL) {
+					return true;
+				}
+			}
+			if (t.isAnnotationPresent(ExcelRelated.class)) {
+				return true;
+			}
+			return false;
+		}).collect(Collectors.toList());
 	}
 
 	/**
@@ -200,7 +210,7 @@ public class ExcelUtils {
 			if (field.isAnnotationPresent(ExcelRelated.class)) {
 				handleRelatedCell(cell, t, field);
 			} else {
-				setCellValue(cell, field.get(t));
+				setCellValue(cell, field, field.get(t));
 			}
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
@@ -226,11 +236,11 @@ public class ExcelUtils {
 						throw new ResultException(TipsEnum.TIP_LOG_ERROR.getMsg("excel操作关联类中relatedAttribute属性设置错误"));
 					}
 					declaredField.setAccessible(true);
-					setCellValue(cell, declaredField.get(related));
+					setCellValue(cell, declaredField, declaredField.get(related));
 				}
 			} else {
 				for (int i = 0; i < excels.length; i++) {
-					setCellValue(cell, null);
+					setCellValue(cell, null, null);
 				}
 			}
 		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
@@ -288,7 +298,7 @@ public class ExcelUtils {
 			log.info("路径不存在或数据源为空!");
 			return false;
 		}
-		try (FileOutputStream fos = new FileOutputStream(path); Workbook workbook = createWorkbook(path);) {
+		try (FileOutputStream fos = new FileOutputStream(path); Workbook workbook = generateWorkbook(path);) {
 			Sheet sheet = workbook.createSheet();
 			int beginRow = subject ? 1 : 0;
 			List<String> allField = new ArrayList<>(list.get(0).keySet());
@@ -351,7 +361,7 @@ public class ExcelUtils {
 	 * @param list 数据源
 	 */
 	public static boolean writeExcelAuto(List<List<List<Object>>> excel, String path) {
-		Workbook workbook = createWorkbook(path);
+		Workbook workbook = generateWorkbook(path);
 		return writeExcel(workbook, excel, path);
 	}
 
@@ -614,6 +624,12 @@ public class ExcelUtils {
 		return res;
 	}
 
+	/**
+	 * 获得单元格值
+	 * 
+	 * @param cell 单元格
+	 * @return 单元格值
+	 */
 	public static Object getCellValue(Cell cell) {
 		if (Objects.isNull(cell)) {
 			return cell.getErrorCellValue();
@@ -639,8 +655,15 @@ public class ExcelUtils {
 		}
 	}
 
-	public static void setCellValue(Cell cell, Object value) {
-		if (Objects.isNull(value)) {
+	/**
+	 * 设置单元格格式以及值
+	 * 
+	 * @param cell 单元格
+	 * @param field 字段
+	 * @param value 单元格值
+	 */
+	public static void setCellValue(Cell cell, Field field, Object value) {
+		if (Objects.isNull(field) || Objects.isNull(value)) {
 			cell.setCellValue("");
 			return;
 		}
