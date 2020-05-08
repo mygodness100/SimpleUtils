@@ -239,7 +239,7 @@ public class StrUtils extends StringUtils {
 	 * @param msgs 参数
 	 * @return 最终的字符串
 	 */
-	public static String formatBuffer(String delimiter, Object... msgs) {
+	public static String formatJoinBuffer(String delimiter, Object... msgs) {
 		StringBuffer builder = new StringBuffer();
 		for (Object msg : msgs) {
 			builder.append(delimiter).append(msg);
@@ -268,7 +268,7 @@ public class StrUtils extends StringUtils {
 	 * @param msgs 参数
 	 * @return 最终的字符串
 	 */
-	public static String formatBuilder(String delimiter, Object... msgs) {
+	public static String formatJoinBuilder(String delimiter, Object... msgs) {
 		StringBuilder builder = new StringBuilder();
 		for (Object msg : msgs) {
 			builder.append(delimiter).append(msg);
