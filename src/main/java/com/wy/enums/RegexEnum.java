@@ -24,7 +24,7 @@ public enum RegexEnum {
 	/**
 	 * 检查是否邮箱
 	 */
-	REGEX_EMAIL("\\w[-\\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\\.)+[A-Za-z]{2}"),
+	REGEX_EMAIL("\\w[-\\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\\.)+[A-Za-z]+"),
 	/**
 	 * 身份证,18位和15位
 	 */

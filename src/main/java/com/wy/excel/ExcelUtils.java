@@ -46,8 +46,8 @@ import lombok.extern.slf4j.Slf4j;
  * apache操作excel的包,HSSFWorkbook是操作Excel2003以前(包括2003)的版本,扩展名是.xls
  * 需要导入包:poi-3.17,commons-codec-1.10,commons-collections4-4.1,commons-logging-1.2,log4j-1.2.17
  * XSSFWorkbook是操作Excel2007的版本,扩展名是.xlsx
- * xmlbeans-2.6.0,curvesapi-1.04,poi-ooxml-schemas-3.17,poi-ooxml-3.17
- * FIXME 所有的方法都暂时没有考虑类上的注解,单元格可以添加注解,选择列表
+ * xmlbeans-2.6.0,curvesapi-1.04,poi-ooxml-schemas-3.17,poi-ooxml-3.17 FIXME
+ * 所有的方法都暂时没有考虑类上的注解,单元格可以添加注解,选择列表
  * 
  * @author paradiseWy
  */
@@ -546,7 +546,7 @@ public class ExcelUtils {
 	 * @param is 输入流
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
 	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
-	 * @param beginRow 从第beginRow+2行开始读取excel
+	 * @param beginRow 从第beginRow+1行开始读取excel
 	 * @return 结果集
 	 */
 	public static List<Map<String, Object>> readExcel(InputStream is, boolean firstUse, List<String> titles,
@@ -560,7 +560,7 @@ public class ExcelUtils {
 	 * @param is 输入流
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
 	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
-	 * @param beginRow 从第beginRow+2行开始读取excel数据
+	 * @param beginRow 从第beginRow+1行开始读取excel数据
 	 * @param beginCol 从第beginCol+1列开始读取excel
 	 * @return 结果集
 	 */
@@ -589,13 +589,14 @@ public class ExcelUtils {
 	 * @param sheet 每一个sheet页中的数据
 	 * @param firstUse 每个sheet中第一行数据是否可作为字段使用,true可,false不可
 	 * @param titles 当firstUse为true时,该值不使用.若是false,则该值为字段名或key值,但是第一行数据仍不使用
-	 * @param beginRow 从第beginRow+2行开始读取excel数据
+	 * @param beginRow 从第beginRow+1行开始读取excel数据
 	 * @param beginCol 从第beginCol+1列开始读取excel
 	 * @return 结果集
 	 */
 	private static List<Map<String, Object>> handlerRow(Sheet sheet, boolean firstUse, List<String> titles,
 			int beginRow, int beginCol) {
-		int rows = sheet.getLastRowNum();
+		// int rows = sheet.getLastRowNum();
+		int rows = sheet.getPhysicalNumberOfRows();
 		if (rows < 2) {
 			return null;
 		}
@@ -605,7 +606,7 @@ public class ExcelUtils {
 			return null;
 		}
 		List<Map<String, Object>> res = new ArrayList<>();
-		for (int j = beginRow + 1; j < rows + 1; j++) {
+		for (int j = beginRow + 1; j < rows; j++) {
 			Map<String, Object> rowData = new HashMap<>();
 			for (int k = beginCol; k < cellNum; k++) {
 				Object cellVal = getCellValue(sheet.getRow(j).getCell(k));
@@ -632,15 +633,15 @@ public class ExcelUtils {
 	 */
 	public static Object getCellValue(Cell cell) {
 		if (Objects.isNull(cell)) {
-			return cell.getErrorCellValue();
-		}
-		if (HSSFDateUtil.isCellDateFormatted(cell)) {
-			return cell.getDateCellValue();
+			return "";
 		}
 		switch (cell.getCellTypeEnum()) {
 			case BOOLEAN:
 				return cell.getBooleanCellValue();
 			case NUMERIC:
+				if (HSSFDateUtil.isCellDateFormatted(cell)) {
+					return cell.getDateCellValue();
+				}
 				return cell.getNumericCellValue();
 			case STRING:
 				return cell.getStringCellValue();
