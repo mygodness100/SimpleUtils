@@ -23,16 +23,7 @@ public final class ListUtils {
 	 */
 	public static int[] toIntArr(List<Integer> list) {
 		if (isNotBlank(list)) {
-			if (System.getProperty("java.version").contains("1.8.")) {
-				return Arrays.stream(list.toArray(new Integer[list.size()]))
-						.mapToInt(Integer::valueOf).toArray();
-			} else {
-				int[] arr = new int[list.size()];
-				for (int i = 0; i < list.size(); i++) {
-					arr[i] = list.get(i);
-				}
-				return arr;
-			}
+			return Arrays.stream(list.toArray(new Integer[list.size()])).mapToInt(Integer::valueOf).toArray();
 		}
 		return null;
 	}
@@ -42,16 +33,7 @@ public final class ListUtils {
 	 */
 	public static long[] toLongArr(List<Long> list) {
 		if (isNotBlank(list)) {
-			if (System.getProperty("java.version").contains("1.8.")) {
-				return Arrays.stream(list.toArray(new Long[list.size()])).mapToLong(Long::valueOf)
-						.toArray();
-			} else {
-				long[] arr = new long[list.size()];
-				for (int i = 0; i < list.size(); i++) {
-					arr[i] = list.get(i);
-				}
-				return arr;
-			}
+			return Arrays.stream(list.toArray(new Long[list.size()])).mapToLong(Long::valueOf).toArray();
 		}
 		return null;
 	}
@@ -61,16 +43,7 @@ public final class ListUtils {
 	 */
 	public static double[] toDoubleArr(List<Double> list) {
 		if (isNotBlank(list)) {
-			if (System.getProperty("java.version").contains("1.8.")) {
-				return Arrays.stream(list.toArray(new Double[list.size()]))
-						.mapToDouble(Double::valueOf).toArray();
-			} else {
-				double[] arr = new double[list.size()];
-				for (int i = 0; i < list.size(); i++) {
-					arr[i] = list.get(i);
-				}
-				return arr;
-			}
+			return Arrays.stream(list.toArray(new Double[list.size()])).mapToDouble(Double::valueOf).toArray();
 		}
 		return null;
 	}
@@ -109,8 +82,7 @@ public final class ListUtils {
 	 * @param column 进行的分类的key
 	 * @return 结果集
 	 */
-	public static Map<Object, List<Map<String, Object>>> varity(List<Map<String, Object>> datas,
-			String column) {
+	public static Map<Object, List<Map<String, Object>>> varity(List<Map<String, Object>> datas, String column) {
 		if (isBlank(datas)) {
 			return null;
 		}
@@ -147,6 +119,7 @@ public final class ListUtils {
 	}
 
 	public static class ListBuilder<T> {
+
 		private List<T> list = new ArrayList<>();
 
 		public ListBuilder() {
