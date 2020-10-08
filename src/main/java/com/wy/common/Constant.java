@@ -2,8 +2,10 @@ package com.wy.common;
 
 /**
  * 公共参数
- * 
- * @author paradiseWy 2018年8月31日
+ *
+ * @author ParadiseWY
+ * @date 2018-08-31 15:08:37
+ * @git {@link https://github.com/mygodness100}
  */
 public interface Constant {
 
@@ -17,4 +19,23 @@ public interface Constant {
 	 */
 	int EXCEL_SHEET_MAX = 65535;
 
+	/**
+	 * 未知
+	 */
+	String STR_UNKNOWN = "UNKNOWN";
+
+	/**
+	 * 成功
+	 */
+	String STR_SUCCESS = "SUCCESS";
+
+	/**
+	 * 失败
+	 */
+	String STR_FAILURE = "FAILURE";
+
+	/**
+	 * 错误
+	 */
+	String STR_ERROR = "ERROR";
 }
