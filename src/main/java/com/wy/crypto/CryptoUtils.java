@@ -30,7 +30,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import com.wy.result.ResultException;
-import com.wy.utils.HexUtils;
+import com.wy.utils.BitUtils;
 import com.wy.utils.MapUtils;
 import com.wy.utils.StrUtils;
 
@@ -73,7 +73,7 @@ public class CryptoUtils {
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
 			byte[] output = md.digest(message.getBytes(StandardCharsets.UTF_8));
-			return flag ? Base64.getEncoder().encodeToString(output) : HexUtils.bytes2HexStr(output);
+			return flag ? Base64.getEncoder().encodeToString(output) : BitUtils.bytes2HexStr(output);
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 			return null;
@@ -95,9 +95,9 @@ public class CryptoUtils {
 			throw new ResultException("密钥长度必须是16的倍数位");
 		}
 		return flag
-				? HexUtils.bytes2HexStr(AES(content.getBytes(StandardCharsets.UTF_8),
+				? BitUtils.bytes2HexStr(AES(content.getBytes(StandardCharsets.UTF_8),
 						encodeRules.getBytes(StandardCharsets.UTF_8), Cipher.ENCRYPT_MODE))
-				: new String(AES(HexUtils.hexStr2Bytes(content), encodeRules.getBytes(StandardCharsets.UTF_8),
+				: new String(AES(BitUtils.hexStr2Bytes(content), encodeRules.getBytes(StandardCharsets.UTF_8),
 						Cipher.DECRYPT_MODE), StandardCharsets.UTF_8);
 	}
 
@@ -111,7 +111,7 @@ public class CryptoUtils {
 		if (StrUtils.isAnyBlank(encodeRules, content)) {
 			return "加密参数不能为空";
 		}
-		return HexUtils.bytes2HexStr(aesCrypto(encodeRules.getBytes(StandardCharsets.UTF_8),
+		return BitUtils.bytes2HexStr(aesCrypto(encodeRules.getBytes(StandardCharsets.UTF_8),
 				content.getBytes(StandardCharsets.UTF_8), Cipher.ENCRYPT_MODE));
 	}
 
@@ -130,7 +130,7 @@ public class CryptoUtils {
 		// SecureRandom.getInstance("SHA1PRNG");
 		// random.setSeed(encodeRules.getBytes());
 		// keygen.init(128, random);
-		byte[] byte_decode = aesCrypto(encodeRules.getBytes(StandardCharsets.UTF_8), HexUtils.hexStr2Bytes(content),
+		byte[] byte_decode = aesCrypto(encodeRules.getBytes(StandardCharsets.UTF_8), BitUtils.hexStr2Bytes(content),
 				Cipher.DECRYPT_MODE);
 		return new String(byte_decode, StandardCharsets.UTF_8);
 	}
