@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -11,6 +12,42 @@ public final class ObjUtils {
 
 	private ObjUtils() {
 	};
+
+	/**
+	 * 判断参数是否为null
+	 * 
+	 * @param <T> 泛型
+	 * @param t 参数
+	 * @return 若为null,返回true
+	 */
+	public static <T> boolean isNull(T t) {
+		return Optional.ofNullable(t).isPresent();
+	}
+
+	/**
+	 * 获得参数值,有值则直接返回,若为null,返回默认值;若默认值为null,抛异常
+	 * 
+	 * @param <T> 泛型
+	 * @param t 需要判断的值
+	 * @param defaultValue 默认值
+	 * @return 返回的值或异常
+	 */
+	public static <T> T getNullDefault(T t, T defaultValue) {
+		return Optional.ofNullable(t).orElseGet(() -> {
+			return Optional.ofNullable(defaultValue).orElseThrow(() -> new NullPointerException());
+		});
+	}
+
+	/**
+	 * 获得参数值,若参数不为null,直接返回;若为null,抛异常
+	 * 
+	 * @param <T> 泛型
+	 * @param t 参数
+	 * @return 有值返回,若为null,抛空指针异常
+	 */
+	public static <T> T getNullException(T t) {
+		return Optional.ofNullable(t).orElseThrow(() -> new NullPointerException());
+	}
 
 	/**
 	 * 判断可变参数是否每个参数都为空,是true,否false
@@ -34,29 +71,23 @@ public final class ObjUtils {
 	}
 
 	/**
-	 * 将一个对象强转为long类型
-	 * @param obj 对象
-	 * @return 强转后的long类型值
+	 * 当t为null时返回defaultValue.若t和defaultValue类型不同,返回值类型为object
+	 * 
+	 * @param <T> 泛型
+	 * @param t 需要进行判断的参数
+	 * @param defaultValue 默认值.当默认值和t是同类型时,返回值和t是同类型;若不是同类型,返回值是object
+	 * @return 结果
 	 */
-	public static Long parseLong(Object obj) {
-		if (Objects.isNull(obj)) {
-			return null;
-		} else {
-			return Long.parseLong(obj.toString());
+	public static <T> T getNull(T t, T defaultValue) {
+		if (!Optional.ofNullable(defaultValue).isPresent()) {
+			throw new NullPointerException("defaultValue can't be null");
 		}
-	}
-
-	/**
-	 * 对象强转后是否为一个整数
-	 * @param obj 对象
-	 * @return true是,false不是
-	 */
-	public static boolean positiveNum(Object obj) {
-		return Objects.isNull(parseLong(obj)) ? false : true;
+		return Optional.ofNullable(t).isPresent() ? Optional.ofNullable(t).get() : defaultValue;
 	}
 
 	/**
 	 * 简单转换httpservletrequest请求中的参数为hashmap,数组会转成list
+	 * 
 	 * @return 转换后的数据
 	 */
 	public static Map<String, Object> transReq(HttpServletRequest request) {
