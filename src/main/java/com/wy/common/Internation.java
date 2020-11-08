@@ -11,15 +11,17 @@ import org.apache.http.util.Asserts;
 import com.wy.utils.StrUtils;
 
 /**
- * @description 该国际化配置类只能在本项目中使用,不可作为工具类对外使用
- * @instruction 配置文件需要至少一个默认的,不带任何后缀的properties文件.其他需要国际化的语言,
- *              需要在文件名后以_分开,如:message_zh_CN,message是默认的文件,zh是国家,CN是语言.
- *              有多个国际化类型时,需要写多个message的配置文件,必须是properties文件
- * @author ParadiseWy
- * @date 2019年6月7日 下午9:06:41
+ * 该国际化配置类只能在本项目中使用,不可作为工具类对外使用
+ * 
+ * @apiNote 配置文件需要至少一个默认的,不带任何后缀的properties文件.其他需要国际化的语言,
+ *          需要在文件名后以_分开,如:message_zh_CN,message是默认的文件,zh是国家,CN是语言.
+ *          有多个国际化类型时,需要写多个message的配置文件,必须是properties文件
+ * @author ParadiseWY
+ * @date 2019-06-07 21:06:41
  * @git {@link https://github.com/mygodness100}
  */
 public class Internation {
+
 	private static ResourceBundle resource;
 
 	static {
