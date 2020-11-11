@@ -24,17 +24,21 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.WritableByteChannel;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.imageio.ImageIO;
 
@@ -43,6 +47,7 @@ import com.wy.utils.StrUtils;
 
 /**
  * 文件帮助类,未使用
+ * 
  * @author 万杨
  */
 public final class IOUtils {
@@ -51,6 +56,7 @@ public final class IOUtils {
 	 * 文件后缀类型归类
 	 */
 	public static final Map<Integer, List<String>> FILE_SUFFIXMAP = new HashMap<Integer, List<String>>() {
+
 		private static final long serialVersionUID = 1L;
 		{
 			put(0, new ArrayList<>(Arrays.asList(".BMP", ".PNG", ".GIF", ".JPG", ".JPEG")));
@@ -125,6 +131,7 @@ public final class IOUtils {
 
 	/**
 	 * 将一个文件移动到另外一个地方,不删除源文件,删除已经存在于目标地址的文件
+	 * 
 	 * @param from 源文件,需要进行移动的文件
 	 * @param to 目标地址
 	 */
@@ -134,6 +141,7 @@ public final class IOUtils {
 
 	/**
 	 * 将一个文件移动到另外一个地方,删除或移动源文件,删除已经存在于目标地址的文件
+	 * 
 	 * @param from 源文件,需要进行移动的文件
 	 * @param to 目标地址
 	 */
@@ -143,6 +151,7 @@ public final class IOUtils {
 
 	/**
 	 * 移动文件从一个地方到另一个地方,若目标文件已经存在,判断是否删除之后再移动
+	 * 
 	 * @param from 源文件,需要进行移动的文件
 	 * @param to 目标地址
 	 * @param deleteTo 若目标文件存在,是否删除,true删除
@@ -170,6 +179,7 @@ public final class IOUtils {
 
 	/**
 	 * 直接用流移动文件
+	 * 
 	 * @param from 源文件
 	 * @param to 目标地址
 	 * @param isCopy true复制,false剪切
@@ -199,6 +209,7 @@ public final class IOUtils {
 
 	/**
 	 * 生成缩略图
+	 * 
 	 * @param originalFile
 	 * @param thumbnailFile
 	 * @param thumbWidth
@@ -301,6 +312,7 @@ public final class IOUtils {
 
 	/**
 	 * 利用流来复制文件
+	 * 
 	 * @param src
 	 * @param des
 	 */
@@ -341,6 +353,7 @@ public final class IOUtils {
 
 	/**
 	 * 创建文件夹,多层目录
+	 * 
 	 * @param file
 	 */
 	public static boolean mkdirs(File file) {
@@ -491,30 +504,32 @@ public final class IOUtils {
 
 	/**
 	 * url去重
+	 * 
 	 * @param args
 	 */
-	public static void main(String[] args) {
-		BufferedReader br = null;
-		OutputStreamWriter osr = null;
-		try {
-			File src = new File("D:\\Java\\responsity\\javas\\Utils\\src\\com\\wy\\utils\\kukudas1530372519755.txt");
-			InputStreamReader isr = new InputStreamReader(new FileInputStream(src));
-			br = new BufferedReader(isr);
-			String line = null;
-			Set<String> urls = new HashSet<>();
-			while ((line = br.readLine()) != null) {
-				urls.add(line);
-			}
-			osr = new OutputStreamWriter(new FileOutputStream("D:\\Java\\test.txt"));
-			for (String url : urls) {
-				osr.write(url + "\r\n");
-			}
-		} catch (Exception e) {
-			// TODO: handle exception
-		} finally {
-			close(br, osr);
-		}
-	}
+	// public static void main(String[] args) {
+	// BufferedReader br = null;
+	// OutputStreamWriter osr = null;
+	// try {
+	// File src = new
+	// File("D:\\Java\\responsity\\javas\\Utils\\src\\com\\wy\\utils\\kukudas1530372519755.txt");
+	// InputStreamReader isr = new InputStreamReader(new FileInputStream(src));
+	// br = new BufferedReader(isr);
+	// String line = null;
+	// Set<String> urls = new HashSet<>();
+	// while ((line = br.readLine()) != null) {
+	// urls.add(line);
+	// }
+	// osr = new OutputStreamWriter(new FileOutputStream("D:\\Java\\test.txt"));
+	// for (String url : urls) {
+	// osr.write(url + "\r\n");
+	// }
+	// } catch (Exception e) {
+	// e.printStackTrace();
+	// } finally {
+	// close(br, osr);
+	// }
+	// }
 
 	/**
 	 * 递归删除文件夹以及文件夹中内容
@@ -575,6 +590,7 @@ public final class IOUtils {
 
 	/**
 	 * 解压缩
+	 * 
 	 * @param source 源数据,需要解压的数据
 	 * @return 解压后的数据,恢复的数据
 	 */
@@ -596,6 +612,7 @@ public final class IOUtils {
 
 	/**
 	 * 压缩
+	 * 
 	 * @param source 源数据,需要压缩的数据
 	 * @return 压缩后的数据
 	 */
@@ -612,8 +629,108 @@ public final class IOUtils {
 		return null;
 	}
 
+	public static void zipFile(String srcPath, String desPath) {
+		File file = new File(desPath);
+		boolean fileExists = fileExists(file);
+		if (!fileExists) {
+			throw new ResultException("文件不存在");
+		}
+		try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(file));
+				InputStream is = new FileInputStream(srcPath);) {
+			ZipEntry zipEntry = new ZipEntry(file.getName());
+			zipEntry.setSize(is.available());
+			zos.putNextEntry(zipEntry);
+			int size = 0;
+			while ((size = is.read()) != -1) {
+				zos.write(size);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void main(String[] args) {
+		zipFile("E:\\repository\\paradise-study-hadoop\\docs\\HBase\\emp.txt",
+				"E:\\repository\\paradise-study-hadoop\\docs\\HBase\\emp.zip");
+	}
+
 	/**
-	 * @apiNote 文件分块,将大文件分成多个小块
+	 * 使用文件channel压缩文件 FIXME
+	 * 
+	 * @param path 需要进行压缩的文件地址
+	 */
+	public static void zipChannel(String srcPath, String desPath) {
+		File file = new File(srcPath);
+		boolean exists = fileExists(file);
+		if (!exists) {
+			throw new ResultException("文件不存在");
+		}
+		File desFile = new File(desPath);
+		boolean fileExists = fileExists(desFile);
+		if (!fileExists) {
+			throw new ResultException("文件不存在");
+		}
+		try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(desFile));
+				WritableByteChannel channel = Channels.newChannel(zipOutputStream);
+				FileChannel fileChannel = new FileInputStream(file).getChannel();) {
+			zipOutputStream.putNextEntry(new ZipEntry("test"));
+			fileChannel.transferTo(0, file.getTotalSpace(), channel);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 使用Map映射文件压缩文件 FIXME
+	 */
+	public static void zipMap(String srcPath, String desPath) {
+		File zipFile = new File(desPath);
+		File file = new File(srcPath);
+		try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipFile));
+				WritableByteChannel writableByteChannel = Channels.newChannel(zipOut)) {
+			zipOut.putNextEntry(new ZipEntry(".zip"));
+			// 内存中的映射文件
+			MappedByteBuffer mappedByteBuffer = new RandomAccessFile(srcPath, "r").getChannel()
+					.map(FileChannel.MapMode.READ_ONLY, 0, 1024);
+			writableByteChannel.write(mappedByteBuffer);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	// public static void zipPip(String path) {
+	// try (WritableByteChannel out = Channels.newChannel(new FileOutputStream(path))) {
+	// Pipe pipe = Pipe.open();
+	// // 异步任务
+	// CompletableFuture.runAsync(() -> {
+	// try (ZipOutputStream zos = new ZipOutputStream(Channels.newOutputStream(pipe.sink()));
+	// WritableByteChannel innerOut = Channels.newChannel(zos)) {
+	// for (int i = 0; i < 10; i++) {
+	// zos.putNextEntry(new ZipEntry(i + SUFFIX_FILE));
+	// FileChannel jpgChannel = new FileInputStream(new File(JPG_FILE_PATH)).getChannel();
+	// jpgChannel.transferTo(0, FILE_SIZE, innerOut);
+	// jpgChannel.close();
+	// }
+	// } catch (Exception e) {
+	// e.printStackTrace();
+	// }
+	// });
+	// // 获取读通道
+	// ReadableByteChannel readableByteChannel = pipe.source();
+	// ByteBuffer buffer = ByteBuffer.allocate(((int) FILE_SIZE) * 10);
+	// while (readableByteChannel.read(buffer) >= 0) {
+	// buffer.flip();
+	// out.write(buffer);
+	// buffer.clear();
+	// }
+	// } catch (Exception e) {
+	// e.printStackTrace();
+	// }
+	// }
+
+	/**
+	 * 文件分块,将大文件分成多个小块
+	 * 
 	 * @param fileSrc 需要分块的文件地址
 	 * @param chunkFolder 分块之后的文件存放目录
 	 */
@@ -650,8 +767,10 @@ public final class IOUtils {
 	}
 
 	/**
-	 * @apiNote 文件合并,文件必须是按顺序切割的文件列表,文件名必须是纯数字或数字是接在下划线之后,如filename_01,filename_02...
-	 * @apiNote 文件名若是带下划线,则只能有一个下划线,否则同样会出问题
+	 * 文件合并,文件必须是按顺序切割的文件列表,文件名必须是纯数字或数字是接在下划线之后,如filename_01,filename_02...
+	 * 
+	 * 文件名若是带下划线,则只能有一个下划线,否则同样会出问题
+	 * 
 	 * @param chunkFolder 块文件目录
 	 * @param desFile 合成后的文件地址,是一个文件
 	 */
