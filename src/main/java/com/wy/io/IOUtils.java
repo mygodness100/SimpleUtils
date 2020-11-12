@@ -24,9 +24,12 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.nio.channels.Pipe;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -35,6 +38,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
@@ -687,46 +691,51 @@ public final class IOUtils {
 		File zipFile = new File(desPath);
 		File file = new File(srcPath);
 		try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipFile));
-				WritableByteChannel writableByteChannel = Channels.newChannel(zipOut)) {
+				WritableByteChannel writableByteChannel = Channels.newChannel(zipOut);
+				RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");) {
 			zipOut.putNextEntry(new ZipEntry(".zip"));
 			// 内存中的映射文件
-			MappedByteBuffer mappedByteBuffer = new RandomAccessFile(srcPath, "r").getChannel()
-					.map(FileChannel.MapMode.READ_ONLY, 0, 1024);
+			MappedByteBuffer mappedByteBuffer = randomAccessFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0,
+					1024);
 			writableByteChannel.write(mappedByteBuffer);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	// public static void zipPip(String path) {
-	// try (WritableByteChannel out = Channels.newChannel(new FileOutputStream(path))) {
-	// Pipe pipe = Pipe.open();
-	// // 异步任务
-	// CompletableFuture.runAsync(() -> {
-	// try (ZipOutputStream zos = new ZipOutputStream(Channels.newOutputStream(pipe.sink()));
-	// WritableByteChannel innerOut = Channels.newChannel(zos)) {
-	// for (int i = 0; i < 10; i++) {
-	// zos.putNextEntry(new ZipEntry(i + SUFFIX_FILE));
-	// FileChannel jpgChannel = new FileInputStream(new File(JPG_FILE_PATH)).getChannel();
-	// jpgChannel.transferTo(0, FILE_SIZE, innerOut);
-	// jpgChannel.close();
-	// }
-	// } catch (Exception e) {
-	// e.printStackTrace();
-	// }
-	// });
-	// // 获取读通道
-	// ReadableByteChannel readableByteChannel = pipe.source();
-	// ByteBuffer buffer = ByteBuffer.allocate(((int) FILE_SIZE) * 10);
-	// while (readableByteChannel.read(buffer) >= 0) {
-	// buffer.flip();
-	// out.write(buffer);
-	// buffer.clear();
-	// }
-	// } catch (Exception e) {
-	// e.printStackTrace();
-	// }
-	// }
+	/**
+	 * 异步压缩文件 FIXME
+	 * 
+	 * @param srcPath
+	 * @param desPath
+	 */
+	public static void zipPip(String srcPath, String desPath) {
+		try (WritableByteChannel out = Channels.newChannel(new FileOutputStream(desPath))) {
+			Pipe pipe = Pipe.open();
+			// 异步任务
+			CompletableFuture.runAsync(() -> {
+				try (ZipOutputStream zos = new ZipOutputStream(Channels.newOutputStream(pipe.sink()));
+						WritableByteChannel innerOut = Channels.newChannel(zos);
+						FileChannel jpgChannel = new FileInputStream(new File(srcPath)).getChannel();) {
+					zos.putNextEntry(new ZipEntry(".zip"));
+					jpgChannel.transferTo(0, new File(srcPath).getTotalSpace(), innerOut);
+					jpgChannel.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			});
+			// 获取读通道
+			ReadableByteChannel readableByteChannel = pipe.source();
+			ByteBuffer buffer = ByteBuffer.allocate(((int) new File(srcPath).getTotalSpace()) * 10);
+			while (readableByteChannel.read(buffer) >= 0) {
+				buffer.flip();
+				out.write(buffer);
+				buffer.clear();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * 文件分块,将大文件分成多个小块
