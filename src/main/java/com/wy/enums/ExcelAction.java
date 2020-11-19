@@ -14,5 +14,7 @@ public enum ExcelAction {
 	/** 只导入 */
 	IMPORT,
 	/** 只导出 */
-	EXPORT;
+	EXPORT,
+	/** 既不导入也不导出 */
+	NOTHING;
 }

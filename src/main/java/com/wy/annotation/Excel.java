@@ -26,7 +26,7 @@ public @interface Excel {
 	String value() default "数据导出";
 
 	/** 导入导出时的行为,默认导入,导出 */
-	ExcelAction excelType() default ExcelAction.ALL;
+	ExcelAction excelAction() default ExcelAction.ALL;
 
 	/**
 	 * 导入时需要排除的Java属性名<br>

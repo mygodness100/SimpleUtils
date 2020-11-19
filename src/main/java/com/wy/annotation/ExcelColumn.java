@@ -25,8 +25,8 @@ public @interface ExcelColumn {
 	String value() default "";
 
 	/** 导入导出时的行为,默认导入,导出 */
-	ExcelAction excelType() default ExcelAction.ALL;
+	ExcelAction excelAction() default ExcelAction.ALL;
 
-	/** 当某个字段有多个值时,需要继承某个Selects接口,在导出时进行转换 */
+	/** 当某个字段有多个值时,需要继承Selects接口,在导出时进行转换 */
 	Class<? extends Selects> select() default Selects.class;
 }
