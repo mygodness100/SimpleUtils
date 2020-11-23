@@ -5,17 +5,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.wy.enums.DateEnum;
 import com.wy.excel.enums.ExcelAction;
-import com.wy.excel.enums.ExcelColumnType;
 
 /**
- * @apiNote 类上注解暂时不可用
- * @author ParadiseWY
- * @date 2020年4月2日 下午3:08:26
- */
-/**
- * excel导入导出,当该注解在实体类上时表示该类字段全部导出;当该注解在字段上,表示该字段导入或导出<br>
+ * excel导入导出,只能在类上使用,默认情况final和static属性忽略 FIXME 类上注解暂时不可用
  * 
  * @author ParadiseWY
  * @date 2020-11-23 11:20:18
@@ -26,43 +19,64 @@ import com.wy.excel.enums.ExcelColumnType;
 public @interface Excel {
 
 	/**
-	 * 注解在类上时有效,排除某些不导入,也不导出的字段
+	 * 导出的文件名,后缀可带可不带,不带则默认后缀为xls;导入时不检查该方法
+	 * 
+	 * @return 默认ExcelFile.xls
+	 */
+	String value() default "ExcelFile.xls";
+
+	/**
+	 * 属性导入导出类型
+	 * 
+	 * @apiNote 当类中属性含有@ExcelColumn,且ExcelAction存在冲突时,属性上的行为优先:<br>
+	 *          当类上是ALL而属性为NOTHING时,属性既不导入也不导出<br>
+	 *          当类上是IMPORT而属性为EXPORT时,属性不导入<br>
+	 *          当类上是EXPORT而属性为IMPORT时,属性不导出<br>
+	 *          当类上是NOTHING而属性为非NOTHING时,以属性上的ExcelAction为准
+	 * 
+	 * @return 导入导出行为
+	 */
+	ExcelAction excelAction() default ExcelAction.ALL;
+
+	/**
+	 * 排除即不导入,也不导出的Java属性
+	 * 
+	 * @apiNote 当该方法包含的同名属性上存在@ExcelColumn,且ExcelAction存在冲突时,属性上的行为优先:<br>
+	 *          当ExcelAction为ExcelAction.ALL时,类上该方法无效<br>
+	 *          当ExcelAction为ExcelAction.NOTHING时,效果等同于该方法<br>
+	 *          当数据整体是导入而属性为ExcelAction.IMPORT时,类上该方法无效,ExcelAction.EXPORT则有效<br>
+	 *          当数据整体是导出而属性为ExcelAction.EXPORT时,类上该方法无效,ExcelAction.IMPORT则有效
+	 * 
+	 * @apiNote {@link #excludes()}和{@link #excludeImports}取并集<br>
+	 *          {@link #excludes()}和{@link #excludeExports}取并集
+	 * 
+	 * @return 需要排除导入导出时的Java属性数组
 	 */
 	String[] excludes() default {};
 
 	/**
-	 * 注解在类上时有效,排除某些不导入的字段
+	 * 排除不导入的Java属性,ExcelAction冲突参考{@link #excludes()}
+	 * 
+	 * @return 需要排除导入的Java属性数组
 	 */
 	String[] excludeImports() default {};
 
 	/**
-	 * 注解在类上时有效,排除某些不导出的字段
+	 * 排除不导出的Java属性,ExcelAction冲突参考{@link #excludes()}
+	 * 
+	 * @return 需要排除导出的Java属性数组
 	 */
 	String[] excludeExports() default {};
 
 	/**
-	 * 注解在类上时:导出的文件名,需要自带后缀;导入时不检查<br>
-	 * 注解在字段上时,表示导出到Excel中的名称
+	 * 默认忽略final和static属性
+	 * 
+	 * @return true忽略,false不忽略
 	 */
-	String value() default "";
+	boolean ignoreFinalStatic() default true;
 
 	/**
-	 * 当值为空时,字段的默认值
-	 */
-	String defaultValue() default "";
-
-	/**
-	 * 注解在字段上时有效,日期格式,默认为yyyy-MM-dd
-	 */
-	DateEnum dateFormat() default DateEnum.DATE;
-
-	/**
-	 * 读取内容转表达式(如:0=男,1=女,2=未知)
-	 */
-	String readConverterExp() default "";
-
-	/**
-	 * 导出时在excel中每个列的高度 单位为字符
+	 * 导出时在excel中每个列的高度,单位为字符
 	 */
 	double height() default 14;
 
@@ -72,37 +86,16 @@ public @interface Excel {
 	double width() default 16;
 
 	/**
-	 * 文字后缀,如%90变成90%
+	 * 数据导出时不需要title,只需要数据
+	 * 
+	 * @return 默认都导出
 	 */
-	String suffix() default "";
+	boolean exportNoTitle() default false;
 
 	/**
-	 * 提示信息
+	 * 只导出excel模板,不导出数据,数据由用户自行填写
+	 * 
+	 * @return 默认都导出
 	 */
-	String prompt() default "";
-
-	/**
-	 * 设置只能选择不能输入的列内容
-	 */
-	String[] combo() default {};
-
-	/**
-	 * 是否导出数据,应对需求:有时我们需要导出一份模板,此时标题需要但内容需要用户手工填写
-	 */
-	boolean isExport() default true;
-
-	/**
-	 * 注解在字段上时,且该字段有ExcelRelated时有效,指明另一个类中的属性名称
-	 */
-	String relatedAttribute() default "";
-
-	/**
-	 * 字段类型(0数字1字符串)
-	 */
-	ExcelColumnType excelColumnType() default ExcelColumnType.STRING;
-
-	/**
-	 * 字段导入导出类型,0导出导入;1只导出;2只导入;3什么也不做
-	 */
-	ExcelAction excelAction() default ExcelAction.ALL;
+	boolean exportTemplate() default false;
 }

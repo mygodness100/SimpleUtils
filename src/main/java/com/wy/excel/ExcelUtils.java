@@ -36,13 +36,13 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.google.common.io.Files;
-import com.wy.annotation.ExcelColumn;
 import com.wy.common.Constant;
 import com.wy.enums.TipsEnum;
 import com.wy.excel.annotation.Excel;
+import com.wy.excel.annotation.ExcelColumn;
 import com.wy.excel.annotation.ExcelRelated;
 import com.wy.excel.enums.ExcelAction;
-import com.wy.excel.enums.Selects;
+import com.wy.excel.enums.PropConverter;
 import com.wy.result.ResultException;
 import com.wy.utils.DateUtils;
 import com.wy.utils.ListUtils;
@@ -58,7 +58,9 @@ import lombok.extern.slf4j.Slf4j;
  * xmlbeans-2.6.0,curvesapi-1.04,poi-ooxml-schemas-3.17,poi-ooxml-3.17 FIXME
  * 所有的方法都暂时没有考虑类上的注解,单元格可以添加注解,选择列表
  * 
- * @author paradiseWy
+ * @author ParadiseWY
+ * @date 2020-11-23 16:11:10
+ * @git {@link https://github.com/mygodness100}
  */
 @Slf4j
 public class ExcelUtils {
@@ -237,10 +239,10 @@ public class ExcelUtils {
 	public static <T> void handleRelatedCell(Cell cell, T t, Field field) {
 		try {
 			Object related = field.get(t);
-			Excel[] excels = field.getAnnotation(ExcelRelated.class).value();
+			String[] columns = field.getAnnotation(ExcelRelated.class).relatedAttrs();
 			if (Objects.nonNull(related)) {
-				for (Excel excel : excels) {
-					Field declaredField = related.getClass().getDeclaredField(excel.relatedAttribute());
+				for (String column : columns) {
+					Field declaredField = related.getClass().getDeclaredField(column);
 					if (Objects.isNull(declaredField)) {
 						throw new ResultException(TipsEnum.TIP_LOG_ERROR.getMsg("excel操作关联类中relatedAttribute属性设置错误"));
 					}
@@ -248,7 +250,7 @@ public class ExcelUtils {
 					setCellValue(cell, declaredField, declaredField.get(related));
 				}
 			} else {
-				for (int i = 0; i < excels.length; i++) {
+				for (int i = 0; i < columns.length; i++) {
 					setCellValue(cell, null, null);
 				}
 			}
@@ -274,12 +276,12 @@ public class ExcelUtils {
 						: field.getAnnotation(Excel.class).value();
 				cell.setCellValue(title);
 			} else if (field.isAnnotationPresent(ExcelRelated.class)) {
-				Excel[] excels = field.getAnnotation(ExcelRelated.class).value();
-				for (Excel excel : excels) {
-					if (StrUtils.isBlank(excel.value()) && StrUtils.isBlank(excel.relatedAttribute())) {
+				String[] excels = field.getAnnotation(ExcelRelated.class).relatedAttrs();
+				for (String excel : excels) {
+					if (StrUtils.isBlank(excel)) {
 						throw new ResultException(TipsEnum.TIP_LOG_ERROR.getMsg("关联字段缺少value或targetAttr"));
 					}
-					cell.setCellValue(StrUtils.getTernary(excel.value(), excel.relatedAttribute()));
+					cell.setCellValue(excel);
 				}
 			}
 		}
@@ -791,14 +793,13 @@ public class ExcelUtils {
 							continue;
 						}
 						// 是否有特殊值需要选择
-						if (excelColumn.select() != Selects.class) {
-							Class<? extends Selects> select = excelColumn.select();
-							setCellValue(r, i, Selects.getMember(select.getEnumConstants(), field.get(data)));
+						if (excelColumn.propConverter() != PropConverter.class) {
+							Class<? extends PropConverter> select = excelColumn.propConverter();
+							setCellValue(r, i, PropConverter.getMember(select.getEnumConstants(), field.get(data)));
 							i++;
 							continue;
 						}
 					}
-					// Cell c = r.createCell(i);
 					setCellValue(r, i, field.get(data));
 					i++;
 				}
