@@ -5,7 +5,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -14,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -31,15 +36,19 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.google.common.io.Files;
+import com.wy.annotation.ExcelColumn;
 import com.wy.common.Constant;
 import com.wy.enums.TipsEnum;
 import com.wy.excel.annotation.Excel;
 import com.wy.excel.annotation.ExcelRelated;
-import com.wy.excel.enums.ExcelHandle;
+import com.wy.excel.enums.ExcelAction;
+import com.wy.excel.enums.Selects;
 import com.wy.result.ResultException;
+import com.wy.utils.DateUtils;
 import com.wy.utils.ListUtils;
 import com.wy.utils.StrUtils;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -184,8 +193,8 @@ public class ExcelUtils {
 		}
 		return result.stream().filter(t -> {
 			if (t.isAnnotationPresent(Excel.class)) {
-				if (t.getAnnotation(Excel.class).excelHandle() == ExcelHandle.EXPORT
-						|| t.getAnnotation(Excel.class).excelHandle() == ExcelHandle.ALL) {
+				if (t.getAnnotation(Excel.class).excelAction() == ExcelAction.EXPORT
+						|| t.getAnnotation(Excel.class).excelAction() == ExcelAction.ALL) {
 					return true;
 				}
 			}
@@ -636,23 +645,23 @@ public class ExcelUtils {
 			return "";
 		}
 		switch (cell.getCellTypeEnum()) {
-			case BOOLEAN:
-				return cell.getBooleanCellValue();
-			case NUMERIC:
-				if (HSSFDateUtil.isCellDateFormatted(cell)) {
-					return cell.getDateCellValue();
-				}
+		case BOOLEAN:
+			return cell.getBooleanCellValue();
+		case NUMERIC:
+			if (HSSFDateUtil.isCellDateFormatted(cell)) {
+				return cell.getDateCellValue();
+			}
+			return cell.getNumericCellValue();
+		case STRING:
+			return cell.getStringCellValue();
+		case FORMULA:
+			if (cell.getCachedFormulaResultTypeEnum() == CellType.NUMERIC) {
 				return cell.getNumericCellValue();
-			case STRING:
-				return cell.getStringCellValue();
-			case FORMULA:
-				if (cell.getCachedFormulaResultTypeEnum() == CellType.NUMERIC) {
-					return cell.getNumericCellValue();
-				} else {
-					return cell.getRichStringCellValue().getString();
-				}
-			default:
-				return cell.getErrorCellValue();
+			} else {
+				return cell.getRichStringCellValue().getString();
+			}
+		default:
+			return cell.getErrorCellValue();
 		}
 	}
 
@@ -677,6 +686,146 @@ public class ExcelUtils {
 			cell.setCellValue(Double.valueOf(value.toString()));
 		} else {
 			cell.setCellValue(value.toString());
+		}
+	}
+
+	/**
+	 * 导出excel数据表格
+	 * 
+	 * @param resp 响应
+	 * @param datas 需要导出的数据
+	 * @param excelName excel表格名字
+	 */
+	public static <T> void exportExcel(List<T> datas, HttpServletResponse resp, String excelName) {
+		resp.setContentType("application/download");
+		try (OutputStream os = resp.getOutputStream();) {
+			resp.setHeader("Content-Disposition", "attchament;filename="
+					+ new String((excelName + ".xls").getBytes("GBK"), StandardCharsets.ISO_8859_1));
+			exportExcel(datas, os);
+		} catch (IOException e) {
+			throw new ResultException("导出失败", e);
+		}
+	}
+
+	/**
+	 * 导出excel数据表格
+	 * 
+	 * @param os 输出流
+	 * @param datas 需要到处的数据
+	 */
+	public static <T> void exportExcel(List<T> datas, OutputStream os) {
+		if (ListUtils.isBlank(datas)) {
+			return;
+		}
+		try (Workbook book = new HSSFWorkbook();) {
+			Class<? extends Object> clazz = datas.get(0).getClass();
+			// 若存在Excel注解,判断是否能导入导出,没有注解默认可以导入导出
+			if (clazz.isAnnotationPresent(Excel.class)) {
+				Excel excel = clazz.getAnnotation(Excel.class);
+				if (excel.excelAction() == ExcelAction.IMPORT) {
+					throw new ResultException("该类只允许导入,不允许导出");
+				}
+				// TODO 取出所有不可导出字段,与后面字段上带ExcelColumn注解的比较
+			}
+			Field[] fields = clazz.getDeclaredFields();
+			Sheet sheet = book.createSheet();
+			// 生成第一行的字段
+			Row firstRow = sheet.createRow(0);
+			int j = 0;
+			String titleName = "";
+			for (Field field : fields) {
+				field.setAccessible(true);
+				// 常量和静态变量不导出
+				if (Modifier.isFinal(field.getModifiers()) || Modifier.isStatic(field.getModifiers())) {
+					continue;
+				}
+				// 默认所有字段都可以导出导入,判断有ExcelColumn的个别行为
+				if (field.isAnnotationPresent(ExcelColumn.class)) {
+					ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+					// 只允许导入,不允许导出或什么都不做
+					if (excelColumn.excelAction() == ExcelAction.IMPORT
+							|| excelColumn.excelAction() == ExcelAction.NOTHING) {
+						continue;
+					}
+					if (StrUtils.isNotBlank(excelColumn.value())) {
+						titleName = excelColumn.value();
+					}
+					// 第一行的显示字段:ExcelColumn->ApiModelProperty->Java属性
+					if (StrUtils.isBlank(excelColumn.value())) {
+						if (field.isAnnotationPresent(ApiModelProperty.class)) {
+							ApiModelProperty apiModelProperty = field.getAnnotation(ApiModelProperty.class);
+							titleName = StrUtils.isBlank(apiModelProperty.value()) ? field.getName()
+									: apiModelProperty.value();
+						} else {
+							titleName = field.getName();
+						}
+					}
+				} else {
+					if (field.isAnnotationPresent(ApiModelProperty.class)) {
+						ApiModelProperty apiModelProperty = field.getAnnotation(ApiModelProperty.class);
+						titleName = StrUtils.isBlank(apiModelProperty.value()) ? field.getName()
+								: apiModelProperty.value();
+					} else {
+						titleName = field.getName();
+					}
+				}
+				Cell c = firstRow.createCell(j);
+				c.setCellValue(titleName);
+				j++;
+			}
+			// 写入数据
+			for (int row = 0; row < datas.size(); row++) {
+				Row r = sheet.createRow(row + 1);
+				int i = 0;
+				T data = datas.get(row);
+				for (Field field : fields) {
+					field.setAccessible(true);
+					if (Modifier.isFinal(field.getModifiers()) || Modifier.isStatic(field.getModifiers())) {
+						continue;
+					}
+					if (field.isAnnotationPresent(ExcelColumn.class)) {
+						ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+						// 只允许导入,不允许导出
+						if (excelColumn.excelAction() == ExcelAction.IMPORT
+								|| excelColumn.excelAction() == ExcelAction.NOTHING) {
+							continue;
+						}
+						// 是否有特殊值需要选择
+						if (excelColumn.select() != Selects.class) {
+							Class<? extends Selects> select = excelColumn.select();
+							setCellValue(r, i, Selects.getMember(select.getEnumConstants(), field.get(data)));
+							i++;
+							continue;
+						}
+					}
+					// Cell c = r.createCell(i);
+					setCellValue(r, i, field.get(data));
+					i++;
+				}
+			}
+			book.write(os);
+		} catch (IOException | IllegalArgumentException | IllegalAccessException | SecurityException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void setCellValue(Row row, int i, Object value) {
+		if (Objects.isNull(row)) {
+			return;
+		}
+		if (Objects.isNull(value)) {
+			row.createCell(i).setCellValue("");
+			return;
+		}
+		Class<? extends Object> clazz = value.getClass();
+		if (clazz == Boolean.class || clazz == boolean.class) {
+			row.createCell(i, CellType.BOOLEAN).setCellValue(Boolean.parseBoolean(value.toString()));
+		} else if (value instanceof Number) {
+			row.createCell(i, CellType.NUMERIC).setCellValue(Double.parseDouble(value.toString()));
+		} else if (value instanceof Date) {
+			row.createCell(i, CellType.STRING).setCellValue(DateUtils.formatDateTime((Date) value));
+		} else {
+			row.createCell(i, CellType.STRING).setCellValue(String.valueOf(value));
 		}
 	}
 }

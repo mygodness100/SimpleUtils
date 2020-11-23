@@ -1,4 +1,4 @@
-package com.wy.annotation;
+package com.wy.excel.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -27,6 +27,6 @@ public @interface ExcelColumn {
 	/** 导入导出时的行为,默认导入,导出 */
 	ExcelAction excelAction() default ExcelAction.ALL;
 
-	/** 当某个字段有多个值时,需要继承Selects接口,在导出时进行转换 */
+	/** 当某个字段有多个值时,需要继承某个Selects接口,在导出时进行转换 */
 	Class<? extends Selects> select() default Selects.class;
 }

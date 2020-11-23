@@ -6,17 +6,23 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import com.wy.enums.DateEnum;
+import com.wy.excel.enums.ExcelAction;
 import com.wy.excel.enums.ExcelColumnType;
-import com.wy.excel.enums.ExcelHandle;
 
 /**
- * @apiNote excel导入导出,当该注解在实体类上时表示该类字段全部导出;当该注解在字段上,表示该字段导入或导出<br>
- *          类上注解暂时不可用
+ * @apiNote 类上注解暂时不可用
  * @author ParadiseWY
  * @date 2020年4月2日 下午3:08:26
  */
+/**
+ * excel导入导出,当该注解在实体类上时表示该类字段全部导出;当该注解在字段上,表示该字段导入或导出<br>
+ * 
+ * @author ParadiseWY
+ * @date 2020-11-23 11:20:18
+ * @git {@link https://github.com/mygodness100}
+ */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD, ElementType.TYPE })
+@Target({ ElementType.TYPE })
 public @interface Excel {
 
 	/**
@@ -96,7 +102,7 @@ public @interface Excel {
 	ExcelColumnType excelColumnType() default ExcelColumnType.STRING;
 
 	/**
-	 * 字段导入导出类型,0导出导入;1只导出;2只导入
+	 * 字段导入导出类型,0导出导入;1只导出;2只导入;3什么也不做
 	 */
-	ExcelHandle excelHandle() default ExcelHandle.ALL;
+	ExcelAction excelAction() default ExcelAction.ALL;
 }
