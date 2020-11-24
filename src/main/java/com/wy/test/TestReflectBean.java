@@ -1,7 +1,7 @@
 package com.wy.test;
 
+import com.wy.enums.Sex;
 import com.wy.excel.annotation.ExcelColumn;
-import com.wy.excel.enums.Sex;
 
 import lombok.Getter;
 import lombok.Setter;

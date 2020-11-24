@@ -1,4 +1,4 @@
-package com.wy.db;
+package com.wy.database;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -21,7 +21,7 @@ import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 
-import com.wy.db.DBColumn.DBColumnBuilder;
+import com.wy.database.DBColumn.DBColumnBuilder;
 import com.wy.enums.DriverEnum;
 import com.wy.utils.StrUtils;
 

@@ -1,4 +1,4 @@
-package com.wy.db;
+package com.wy.database;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,4 +1,6 @@
-package com.wy.excel.enums;
+package com.wy.enums;
+
+import com.wy.common.PropConverter;
 
 /**
  * 两种方式重写getValue():直接在枚举属性中实现抽象类;在枚举类中统一实现抽象类
@@ -22,6 +24,14 @@ public enum Sex implements PropConverter {
 		@Override
 		public Object getValue() {
 			return "女";
+		}
+	},
+
+	UNKNOWN("未知") {
+
+		@Override
+		public Object getValue() {
+			return "未知";
 		}
 	};
 

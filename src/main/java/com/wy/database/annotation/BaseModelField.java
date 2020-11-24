@@ -1,4 +1,4 @@
-package com.wy.db.annotation;
+package com.wy.database.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

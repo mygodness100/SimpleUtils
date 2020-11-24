@@ -1,4 +1,4 @@
-package com.wy.db.annotation;
+package com.wy.database.annotation;
 
 /**
  * 对应字符串主键

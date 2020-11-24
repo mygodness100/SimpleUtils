@@ -6,9 +6,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.wy.common.PropConverter;
 import com.wy.enums.DateEnum;
 import com.wy.excel.enums.ExcelAction;
-import com.wy.excel.enums.PropConverter;
 
 /**
  * 实体类导入导出时单个字段的行为,该注解的优先级高于@Excel
@@ -42,6 +42,13 @@ public @interface ExcelColumn {
 	 * @return 用来进行转换的字节码文件
 	 */
 	Class<? extends PropConverter> propConverter() default PropConverter.class;
+
+	/**
+	 * 作用等同于propConverter(),数组中的值必须以key=value的形式存在
+	 * 
+	 * @return 用来进行转换的key=value数组
+	 */
+	String[] propConverters() default {};
 
 	/**
 	 * 代替propConverter FIXME
