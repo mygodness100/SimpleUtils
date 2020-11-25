@@ -9,15 +9,18 @@ import com.wy.enums.DateEnum;
 
 /**
  * calender的set方法和add方法都可以重新设定时间,但是set方法设置时间后会重新计算
+ * 
  * @apiNote 可查看commons-lang的DateUtils以及LocalDateUtils
  * @author paradiseWy
  */
 public final class DateUtils {
+
 	public static final long DAY = 1000 * 60 * 60 * 24;
 
-	public static final String DEFAULT_PATTERN = DateEnum.DATETIME.get();
+	public static final String DEFAULT_PATTERN = DateEnum.DATETIME.getPattern();
 
 	private static ThreadLocal<SimpleDateFormat> threadLocal = new ThreadLocal<SimpleDateFormat>() {
+
 		@Override
 		protected SimpleDateFormat initialValue() {
 			return new SimpleDateFormat(DEFAULT_PATTERN);
@@ -26,7 +29,7 @@ public final class DateUtils {
 
 	private DateUtils() {
 	}
-	
+
 	private static SimpleDateFormat get(String pattern) {
 		SimpleDateFormat sdf = threadLocal.get();
 		sdf.applyPattern(pattern);
@@ -111,14 +114,14 @@ public final class DateUtils {
 	 * 返回指定时间转换为年月日时分秒字符串
 	 */
 	public static String format(long date, DateEnum pattern) {
-		return format(date, pattern.get());
+		return format(date, pattern.getPattern());
 	}
 
 	/**
 	 * 返回指定时间转换为年月日时分秒字符串
 	 */
 	public static String format(Date date, DateEnum pattern) {
-		return format(date, pattern.get());
+		return format(date, pattern.getPattern());
 	}
 
 	/**
@@ -151,7 +154,7 @@ public final class DateUtils {
 	 * 将时间字符串转换为指定格式的date
 	 */
 	public static Date parse(String date, DateEnum pattern) {
-		return parse(date, pattern.get());
+		return parse(date, pattern.getPattern());
 	}
 
 	/**
@@ -247,8 +250,7 @@ public final class DateUtils {
 	/**
 	 * 设置一个指定年月日时分秒的时间
 	 */
-	public static Date dateCustom(int year, int month, int date, int hourOfDay, int minute,
-			int second) {
+	public static Date dateCustom(int year, int month, int date, int hourOfDay, int minute, int second) {
 		if (month < 1) {
 			return null;
 		}
@@ -415,6 +417,7 @@ public final class DateUtils {
 
 	/**
 	 * 获得某个月的最大天数
+	 * 
 	 * @return 天数
 	 */
 	public static int getMonthDays(Date date) {
@@ -453,8 +456,7 @@ public final class DateUtils {
 	public static Date getMonthEnd(Date date) {
 		Calendar c = Calendar.getInstance();
 		c.setTime(date);
-		c.set(c.get(Calendar.YEAR), c.get(Calendar.MONTH),
-				c.getActualMaximum(Calendar.DAY_OF_MONTH));
+		c.set(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.getActualMaximum(Calendar.DAY_OF_MONTH));
 		return new Date(getDayEnd(c.getTime()));
 	}
 
@@ -565,6 +567,7 @@ public final class DateUtils {
 
 	/**
 	 * 比较2个日期是否为同一天
+	 * 
 	 * @param date1 时间1
 	 * @param date2 时间2
 	 * @return true是,false否
@@ -574,8 +577,7 @@ public final class DateUtils {
 		c1.setTime(date1);
 		Calendar c2 = Calendar.getInstance();
 		c2.setTime(date2);
-		if (c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR)
-				&& c1.get(Calendar.MONTH) == c2.get(Calendar.MONTH)
+		if (c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR) && c1.get(Calendar.MONTH) == c2.get(Calendar.MONTH)
 				&& c1.get(Calendar.DATE) == c2.get(Calendar.DATE)) {
 			return true;
 		}

@@ -2,9 +2,13 @@ package com.wy.enums;
 
 /**
  * 时间格式化枚举
- * @author wanyang
+ * 
+ * @author ParadiseWY
+ * @date 2020-11-25 09:26:04
+ * @git {@link https://github.com/mygodness100}
  */
 public enum DateEnum {
+
 	DATE("yyyy-MM-dd"),
 	DATE_SLASH("yyyy/MM/dd"),
 	DATE_NONE("yyyyMMdd"),
@@ -34,13 +38,13 @@ public enum DateEnum {
 
 	WEEK("EEE");
 
-	private String format;
+	private String pattern;
 
-	DateEnum(String format) {
-		this.format = format;
+	DateEnum(String pattern) {
+		this.pattern = pattern;
 	}
 
-	public String get() {
-		return format;
+	public String getPattern() {
+		return pattern;
 	}
 }
