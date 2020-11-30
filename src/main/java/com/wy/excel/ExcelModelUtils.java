@@ -21,10 +21,7 @@ import com.wy.excel.annotation.Excel;
 import com.wy.excel.annotation.ExcelRelated;
 import com.wy.excel.enums.ExcelAction;
 import com.wy.result.ResultException;
-import com.wy.utils.ListUtils;
 import com.wy.utils.StrUtils;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * 实体类Excel工具类
@@ -33,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2020-11-30 17:06:09
  * @git {@link https://github.com/mygodness100}
  */
-@Slf4j
 public class ExcelModelUtils implements ExcelUtils {
 
 	private ExcelModelUtils() {}
@@ -47,27 +43,9 @@ public class ExcelModelUtils implements ExcelUtils {
 		return Inner.INSTANCE;
 	}
 
-	/**
-	 * 将数据写入excel文件,根据excel文件的结尾判断生成那种版本的excel,若未指定类型,自动归结为低版本excel
-	 * 
-	 * @param path 以.xls或xlsx结尾的文件路径
-	 * @param list 实体类数据源集合
-	 * @param subject 是否添加字段名称,true添加false不添加,默认添加
-	 */
 	@Override
-	public <T> void writeExcel(List<T> list, String path, boolean subject) {
-		if (ListUtils.isBlank(list)) {
-			log.info(TipsEnum.TIP_LOG_INFO.getMsg("excel写入文件数据源为空"));
-			return;
-		}
-		if (StrUtils.isBlank(path)) {
-			log.info(TipsEnum.TIP_LOG_ERROR.getMsg("excel写入文件路径不存在"));
-			throw new ResultException("路径不存在");
-		}
-		double sheetNum = Math.ceil(list.size() / Constant.EXCEL_SHEET_MAX);
-		for (int i = 0; i < sheetNum; i++) {
-			handleSheet(i, list, path, subject);
-		}
+	public ExcelUtils newExcelUtils() {
+		return getInstance();
 	}
 
 	/**
@@ -113,8 +91,7 @@ public class ExcelModelUtils implements ExcelUtils {
 	 * @param clazz 泛型的字节码
 	 * @return 需要导出的字段集合
 	 */
-	@Override
-	public <T> List<Field> handleClass(Class<T> clazz) {
+	private <T> List<Field> handleClass(Class<T> clazz) {
 		List<Field> result = new ArrayList<>();
 		Field[] parentFields = clazz.getSuperclass().getDeclaredFields();
 		if (ArrayUtils.isNotEmpty(parentFields)) {

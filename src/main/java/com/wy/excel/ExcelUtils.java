@@ -28,6 +28,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.google.common.io.Files;
+import com.wy.common.Constant;
 import com.wy.common.PropConverter;
 import com.wy.enums.TipsEnum;
 import com.wy.excel.annotation.Excel;
@@ -52,6 +53,8 @@ import io.swagger.annotations.ApiModelProperty;
  * @git {@link https://github.com/mygodness100}
  */
 public interface ExcelUtils {
+
+	ExcelUtils newExcelUtils();
 
 	/**
 	 * 根据文件后缀名生成相应的Workbook实例,将数据写入到excel中使用
@@ -113,7 +116,30 @@ public interface ExcelUtils {
 	 * @param list 实体类数据源集合
 	 * @param subject 是否添加字段名称,true添加false不添加,默认添加
 	 */
-	default <T> void writeExcel(List<T> list, String path, boolean subject) {}
+	default <T> void writeExcel(List<T> list, String path, boolean subject) {
+		checkParams(list, path, subject);
+	}
+
+	/**
+	 * 参数检查,sheet最大数量检查
+	 * 
+	 * @param <T> 泛型数据类型
+	 * @param list 数据
+	 * @param path 文件路径
+	 * @param subject 是否写标题
+	 */
+	default <T> void checkParams(List<T> list, String path, boolean subject) {
+		if (StrUtils.isBlank(path) || ListUtils.isBlank(list)) {
+			throw new ResultException(TipsEnum.TIP_LOG_INFO.getMsg("excel写入文件数据源为空"));
+		}
+		if (StrUtils.isBlank(path)) {
+			throw new ResultException(TipsEnum.TIP_LOG_ERROR.getMsg("excel写入文件路径不存在"));
+		}
+		double sheetNum = Math.ceil(list.size() / Constant.EXCEL_SHEET_MAX);
+		for (int i = 0; i < sheetNum; i++) {
+			handleSheet(i, list, path, subject);
+		}
+	}
 
 	/**
 	 * 处理每一个sheet页
@@ -124,18 +150,7 @@ public interface ExcelUtils {
 	 * @param path 写文件路径
 	 * @param subject 是否需要第一排的标题
 	 */
-	default <T> void handleSheet(int index, List<T> list, String path, boolean subject) {}
-
-	/**
-	 * 从类中筛选出需要导出的字段
-	 * 
-	 * @param <T> 需要导出的泛型
-	 * @param clazz 泛型的字节码
-	 * @return 需要导出的字段集合
-	 */
-	default <T> List<Field> handleClass(Class<T> clazz) {
-		return null;
-	}
+	<T> void handleSheet(int index, List<T> list, String path, boolean subject);
 
 	/**
 	 * 处理每一个单元格
@@ -166,33 +181,23 @@ public interface ExcelUtils {
 	default void createFirst(Sheet sheet, List<Field> fields) {}
 
 	/**
-	 * 根据excel文件的结尾判断生成那种版本的excel,若未指定类型,自动归结为低版本excel
-	 * 
-	 * @param path 以.xls或xlsx结尾的文件路径
-	 * @param list map类数据源集合
-	 */
-	default boolean writeExcel(String path, List<Map<String, Object>> list) {
-		return writeExcel(path, list, true);
-	}
-
-	/**
-	 * 根据excel文件的结尾判断生成那种版本的excel,若未指定类型,自动归结为低版本excel
-	 * 
-	 * @param path 以.xls或xlsx结尾的文件路径
-	 * @param list map类数据源集合
-	 * @param subject 是否添加字段名称,true添加false不添加,默认添加
-	 */
-	default boolean writeExcel(String path, List<Map<String, Object>> list, boolean subject) {
-		return false;
-	}
-
-	/**
 	 * 处理listmap中的第一行
 	 * 
 	 * @param titles 所有的字段,此处因为是map,不可标注注解,只能是字段名
 	 * @param sheet sheet页
 	 */
 	default void createFirst(List<String> titles, Sheet sheet) {}
+
+	/**
+	 * 根据excel文件的结尾判断生成那种版本的excel,若未指定类型,自动归结为低版本excel
+	 * 
+	 * @param path 以.xls或xlsx结尾的文件路径
+	 * @param list map类数据源集合
+	 * @param subject 是否添加字段名称,默认true添加false不添加
+	 */
+	default boolean writeExcel(String path, List<Map<String, Object>> list, boolean subject) {
+		return false;
+	}
 
 	/**
 	 * 根据excel文件的结尾来自动判断生成那种版本的excel,若传的文件没有指定类型,自动归结为低版本excel
@@ -394,23 +399,23 @@ public interface ExcelUtils {
 			return "";
 		}
 		switch (cell.getCellTypeEnum()) {
-		case BOOLEAN:
-			return cell.getBooleanCellValue();
-		case NUMERIC:
-			if (HSSFDateUtil.isCellDateFormatted(cell)) {
-				return cell.getDateCellValue();
-			}
-			return cell.getNumericCellValue();
-		case STRING:
-			return cell.getStringCellValue();
-		case FORMULA:
-			if (cell.getCachedFormulaResultTypeEnum() == CellType.NUMERIC) {
+			case BOOLEAN:
+				return cell.getBooleanCellValue();
+			case NUMERIC:
+				if (HSSFDateUtil.isCellDateFormatted(cell)) {
+					return cell.getDateCellValue();
+				}
 				return cell.getNumericCellValue();
-			} else {
-				return cell.getRichStringCellValue().getString();
-			}
-		default:
-			return cell.getErrorCellValue();
+			case STRING:
+				return cell.getStringCellValue();
+			case FORMULA:
+				if (cell.getCachedFormulaResultTypeEnum() == CellType.NUMERIC) {
+					return cell.getNumericCellValue();
+				} else {
+					return cell.getRichStringCellValue().getString();
+				}
+			default:
+				return cell.getErrorCellValue();
 		}
 	}
 

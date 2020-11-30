@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
@@ -20,8 +21,8 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import com.wy.enums.TipsEnum;
+import com.wy.result.ResultException;
 import com.wy.utils.ListUtils;
-import com.wy.utils.StrUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,28 +47,37 @@ public class ExcelMapUtils implements ExcelUtils {
 		return Inner.INSTANCE;
 	}
 
-	/**
-	 * 根据excel文件的结尾判断生成那种版本的excel,若未指定类型,自动归结为低版本excel
-	 * 
-	 * @param path 以.xls或xlsx结尾的文件路径
-	 * @param list map类数据源集合
-	 * @param subject 是否添加字段名称,true添加false不添加,默认添加
-	 */
 	@Override
-	public boolean writeExcel(String path, List<Map<String, Object>> list, boolean subject) {
-		if (StrUtils.isBlank(path) || ListUtils.isBlank(list)) {
-			log.info("路径不存在或数据源为空!");
-			return false;
+	public ExcelUtils newExcelUtils() {
+		return getInstance();
+	}
+
+	/**
+	 * 判断泛型的类型是否为Map或其子类
+	 * 
+	 * @param t 集合中的随机一个数据
+	 */
+	private void judgeClass(Class<?> clazz) {
+		boolean contains = ArrayUtils.contains(clazz.getInterfaces(), Map.class);
+		if (!contains) {
+			throw new ResultException("this utils could only operate Map");
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> void handleSheet(int index, List<T> list, String path, boolean subject) {
+		judgeClass(list.get(0).getClass());
+		List<Map<String, Object>> datas = (List<Map<String, Object>>) list;
 		try (FileOutputStream fos = new FileOutputStream(path);
 				Workbook workbook = ExcelUtils.generateWorkbook(path);) {
 			Sheet sheet = workbook.createSheet();
 			int beginRow = subject ? 1 : 0;
-			List<String> allField = new ArrayList<>(list.get(0).keySet());
+			List<String> allField = new ArrayList<>(datas.get(0).keySet());
 			for (int i = 0; i < list.size(); i++) {
 				Row row = sheet.createRow(beginRow);
 				for (int j = 0; j < allField.size(); j++) {
-					Object object = list.get(i).get(allField.get(j));
+					Object object = datas.get(i).get(allField.get(j));
 					Cell cell = row.createCell(j);
 					if (object != null && Date.class == object.getClass()) {
 						cell.setCellValue((Date) object);
@@ -81,10 +91,8 @@ public class ExcelMapUtils implements ExcelUtils {
 				createFirst(allField, sheet);
 			}
 			workbook.write(fos);
-			return true;
 		} catch (IOException e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 
