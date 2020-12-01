@@ -102,7 +102,7 @@ public class ExcelMapUtils implements ExcelUtils {
 	}
 	
 	@Override
-	public <T> void writeSheet(int index, List<T> datas, OutputStream os, int sheetMax, boolean subject) {}
+	public <T> void handleSheet(int index, List<T> datas, OutputStream os, int sheetMax, boolean subject) {}
 
 	/**
 	 * 处理listmap中的第一行
@@ -160,7 +160,7 @@ public class ExcelMapUtils implements ExcelUtils {
 	 */
 	public List<Map<String, Object>> readExcel(String path, boolean firstUse, List<String> titles, int beginRow,
 			int beginCol) {
-		try (Workbook wb = ExcelUtils.createIsWorkbook(path);) {
+		try (Workbook wb = ExcelUtils.generateReadWorkbook(path);) {
 			List<Map<String, Object>> res = new ArrayList<>();
 			int sheetNum = wb.getNumberOfSheets();
 			for (int i = 0; i < sheetNum; i++) {

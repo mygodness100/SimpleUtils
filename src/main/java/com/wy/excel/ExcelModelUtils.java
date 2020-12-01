@@ -11,15 +11,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import com.wy.common.PropConverter;
 import com.wy.excel.annotation.Excel;
 import com.wy.excel.annotation.ExcelColumn;
 import com.wy.excel.enums.ExcelAction;
 import com.wy.result.ResultException;
+import com.wy.utils.ListUtils;
 import com.wy.utils.StrUtils;
 
 import io.swagger.annotations.ApiModelProperty;
@@ -82,9 +85,113 @@ public class ExcelModelUtils implements ExcelUtils {
 			e.printStackTrace();
 		}
 	}
-	
+
+	/**
+	 * 处理每一个sheet页,主要是将数据导出到输出流中,提供下载
+	 *
+	 * @param <T> 泛型
+	 * @param index sheet页下标,从1开始
+	 * @param datas 实体类数据源集合
+	 * @param os 输出流,默认是.xls结尾的文件流
+	 * @param sheetMax 每个sheet页的最大写入行数,默认65535
+	 * @param subject 是否添加标题,默认true添加false不添加,真实数据从第2行开始写入
+	 */
 	@Override
-	public <T> void writeSheet(int index, List<T> datas, OutputStream os, int sheetMax, boolean subject) {}
+	public <T> void handleSheet(int index, List<T> datas, OutputStream os, int sheetMax, boolean subject) {
+		if (ListUtils.isBlank(datas)) {
+			return;
+		}
+		try (Workbook book = new HSSFWorkbook();) {
+			Class<? extends Object> clazz = datas.get(0).getClass();
+			// 若存在Excel注解,判断是否能导入导出,没有注解默认可以导入导出
+			if (clazz.isAnnotationPresent(Excel.class)) {
+				Excel excel = clazz.getAnnotation(Excel.class);
+				if (excel.excelAction() == ExcelAction.IMPORT) {
+					throw new ResultException("该类只允许导入,不允许导出");
+				}
+				// TODO 取出所有不可导出字段,与后面字段上带ExcelColumn注解的比较
+			}
+			Field[] fields = clazz.getDeclaredFields();
+			Sheet sheet = book.createSheet();
+			// 生成第一行的字段
+			Row firstRow = sheet.createRow(0);
+			int j = 0;
+			String titleName = "";
+			for (Field field : fields) {
+				field.setAccessible(true);
+				// 常量和静态变量不导出
+				if (Modifier.isFinal(field.getModifiers()) || Modifier.isStatic(field.getModifiers())) {
+					continue;
+				}
+				// 默认所有字段都可以导出导入,判断有ExcelColumn的个别行为
+				if (field.isAnnotationPresent(ExcelColumn.class)) {
+					ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+					// 只允许导入,不允许导出或什么都不做
+					if (excelColumn.excelAction() == ExcelAction.IMPORT
+							|| excelColumn.excelAction() == ExcelAction.NOTHING) {
+						continue;
+					}
+					if (StrUtils.isNotBlank(excelColumn.value())) {
+						titleName = excelColumn.value();
+					}
+					// 第一行的显示字段:ExcelColumn->ApiModelProperty->Java属性
+					if (StrUtils.isBlank(excelColumn.value())) {
+						if (field.isAnnotationPresent(ApiModelProperty.class)) {
+							ApiModelProperty apiModelProperty = field.getAnnotation(ApiModelProperty.class);
+							titleName = StrUtils.isBlank(apiModelProperty.value()) ? field.getName()
+									: apiModelProperty.value();
+						} else {
+							titleName = field.getName();
+						}
+					}
+				} else {
+					if (field.isAnnotationPresent(ApiModelProperty.class)) {
+						ApiModelProperty apiModelProperty = field.getAnnotation(ApiModelProperty.class);
+						titleName = StrUtils.isBlank(apiModelProperty.value()) ? field.getName()
+								: apiModelProperty.value();
+					} else {
+						titleName = field.getName();
+					}
+				}
+				Cell c = firstRow.createCell(j);
+				c.setCellValue(titleName);
+				j++;
+			}
+			// 写入数据
+			for (int row = 0; row < datas.size(); row++) {
+				Row r = sheet.createRow(row + 1);
+				int i = 0;
+				T data = datas.get(row);
+				for (Field field : fields) {
+					field.setAccessible(true);
+					if (Modifier.isFinal(field.getModifiers()) || Modifier.isStatic(field.getModifiers())) {
+						continue;
+					}
+					if (field.isAnnotationPresent(ExcelColumn.class)) {
+						ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+						// 只允许导入,不允许导出
+						if (excelColumn.excelAction() == ExcelAction.IMPORT
+								|| excelColumn.excelAction() == ExcelAction.NOTHING) {
+							continue;
+						}
+						// 是否有特殊值需要选择
+						if (excelColumn.propConverter() != PropConverter.class) {
+							Class<? extends PropConverter> select = excelColumn.propConverter();
+							ExcelUtils.setCellValue(r, i,
+									PropConverter.getMember(select.getEnumConstants(), field.get(data)));
+							i++;
+							continue;
+						}
+					}
+					ExcelUtils.setCellValue(r, i, field.get(data));
+					i++;
+				}
+			}
+			book.write(os);
+		} catch (IOException | IllegalArgumentException | IllegalAccessException | SecurityException e) {
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * 从类中筛选出需要导出的字段

@@ -7,8 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -24,17 +23,12 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.google.common.io.Files;
 import com.wy.common.Constant;
-import com.wy.common.PropConverter;
 import com.wy.enums.TipsEnum;
-import com.wy.excel.annotation.Excel;
-import com.wy.excel.annotation.ExcelColumn;
-import com.wy.excel.enums.ExcelAction;
 import com.wy.io.IOUtils;
 import com.wy.result.ResultException;
 import com.wy.utils.DateUtils;
@@ -42,14 +36,11 @@ import com.wy.utils.ListUtils;
 import com.wy.utils.NumUtils;
 import com.wy.utils.StrUtils;
 
-import io.swagger.annotations.ApiModelProperty;
-
 /**
  * apache操作excel的包,HSSFWorkbook是操作Excel2003以前(包括2003)的版本,扩展名是.xls
  * 需要导入包:poi-3.17,commons-codec-1.10,commons-collections4-4.1,commons-logging-1.2,log4j-1.2.17
  * XSSFWorkbook是操作Excel2007的版本,扩展名是.xlsx
- * xmlbeans-2.6.0,curvesapi-1.04,poi-ooxml-schemas-3.17,poi-ooxml-3.17 FIXME
- * 所有的方法都暂时没有考虑类上的注解,单元格可以添加注解,选择列表
+ * xmlbeans-2.6.0,curvesapi-1.04,poi-ooxml-schemas-3.17,poi-ooxml-3.17
  * 
  * @author ParadiseWY
  * @date 2020-11-23 16:11:10
@@ -80,7 +71,7 @@ public interface ExcelUtils {
 	 * @param path 文件路径
 	 * @return Workbook实例
 	 */
-	static Workbook createIsWorkbook(String path) {
+	static Workbook generateReadWorkbook(String path) {
 		File file = new File(path);
 		if (!file.exists()) {
 			throw new ResultException("文件不存在");
@@ -89,15 +80,90 @@ public interface ExcelUtils {
 		try {
 			if (path.endsWith(".xlsx")) {
 				workbook = new XSSFWorkbook(new FileInputStream(file));
-			} else if (path.endsWith(".xls")) {
-				workbook = new HSSFWorkbook(new FileInputStream(file));
 			} else {
-				throw new ResultException("excel文件格式不正确!");
+				workbook = new HSSFWorkbook(new FileInputStream(file));
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return workbook;
+	}
+
+	/**
+	 * 获得单元格值
+	 * 
+	 * @param cell 单元格
+	 * @return 单元格值
+	 */
+	public static Object getCellValue(Cell cell) {
+		if (Objects.isNull(cell)) {
+			return "";
+		}
+		switch (cell.getCellType()) {
+		case BOOLEAN:
+			return cell.getBooleanCellValue();
+		case NUMERIC:
+			if (DateUtil.isCellDateFormatted(cell)) {
+				return cell.getDateCellValue();
+			}
+			return cell.getNumericCellValue();
+		case STRING:
+			return cell.getStringCellValue();
+		case FORMULA:
+			if (cell.getCachedFormulaResultType() == CellType.NUMERIC) {
+				return cell.getNumericCellValue();
+			} else {
+				return cell.getRichStringCellValue().getString();
+			}
+		default:
+			return cell.getErrorCellValue();
+		}
+	}
+
+	/**
+	 * 设置单元格格式以及值
+	 * 
+	 * @param cell 单元格
+	 * @param value 单元格值
+	 */
+	static void setCellValue(Cell cell, Object value) {
+		Class<? extends Object> clazz = value.getClass();
+		if (clazz == Boolean.class || clazz == boolean.class) {
+			cell.setCellValue(Boolean.valueOf(value.toString()));
+		} else if (NumberUtils.isCreatable(value.toString())) {
+			cell.setCellValue(Double.valueOf(value.toString()));
+		} else if (clazz == Date.class) {
+			cell.setCellValue((Date) value);
+		} else {
+			cell.setCellValue(value.toString());
+		}
+	}
+
+	/**
+	 * 根据值创建不同类型的Cell并设置值
+	 * 
+	 * @param row 行
+	 * @param index 行中的第几个cell
+	 * @param value 值
+	 */
+	static void setCellValue(Row row, int index, Object value) {
+		if (Objects.isNull(row)) {
+			return;
+		}
+		if (Objects.isNull(value)) {
+			row.createCell(index).setCellValue("");
+			return;
+		}
+		Class<? extends Object> clazz = value.getClass();
+		if (clazz == Boolean.class || clazz == boolean.class) {
+			row.createCell(index, CellType.BOOLEAN).setCellValue(Boolean.valueOf(value.toString()));
+		} else if (value instanceof Number) {
+			row.createCell(index, CellType.NUMERIC).setCellValue(Double.valueOf(value.toString()));
+		} else if (value instanceof Date) {
+			row.createCell(index).setCellValue(DateUtils.formatDateTime((Date) value));
+		} else {
+			row.createCell(index, CellType.STRING).setCellValue(String.valueOf(value));
+		}
 	}
 
 	/**
@@ -111,8 +177,12 @@ public interface ExcelUtils {
 	 * @param datas 实体类数据源集合或Map数据源集合
 	 * @param path 文件路径,若文件路径不带后缀,则默认后缀为.xls
 	 */
-	default <T> void writeExcel(List<T> datas, String path) {
-		writeExcel(datas, path, Constant.EXCEL_SHEET_MAX);
+	default <T> void write(List<T> datas, String path) {
+		write(datas, path, Constant.EXCEL_SHEET_MAX);
+	}
+
+	default <T> void write(List<T> datas, File file) {
+		write(datas, file, Constant.EXCEL_SHEET_MAX);
 	}
 
 	/**
@@ -126,8 +196,12 @@ public interface ExcelUtils {
 	 * @param path 文件路径,若文件路径不带后缀,则默认后缀为.xls
 	 * @param sheetMax 每个sheet页的最大写入行数,默认65535
 	 */
-	default <T> void writeExcel(List<T> datas, String path, int sheetMax) {
-		writeExcel(datas, path, Constant.EXCEL_SHEET_MAX, true);
+	default <T> void write(List<T> datas, String path, int sheetMax) {
+		write(datas, path, sheetMax, true);
+	}
+
+	default <T> void write(List<T> datas, File file, int sheetMax) {
+		write(datas, file, sheetMax, true);
 	}
 
 	/**
@@ -141,8 +215,12 @@ public interface ExcelUtils {
 	 * @param sheetMax 每个sheet页的最大写入行数,默认65535
 	 * @param subject 是否添加标题,默认true添加false不添加,真实数据从第2行开始写入
 	 */
-	default <T> void writeExcel(List<T> datas, String path, int sheetMax, boolean subject) {
+	default <T> void write(List<T> datas, String path, int sheetMax, boolean subject) {
 		writeSheet(datas, path, sheetMax, subject);
+	}
+
+	default <T> void write(List<T> datas, File file, int sheetMax, boolean subject) {
+		writeSheet(datas, file, sheetMax, subject);
 	}
 
 	/**
@@ -155,17 +233,24 @@ public interface ExcelUtils {
 	 * @param subject 是否添加标题,默认true添加false不添加,真实数据从第2行开始写入
 	 */
 	default <T> void writeSheet(List<T> datas, String path, int sheetMax, boolean subject) {
-		if (ListUtils.isBlank(datas)) {
-			throw new ResultException(TipsEnum.TIP_LOG_INFO.getMsg("excel写入文件数据源为空"));
-		}
 		if (StrUtils.isBlank(path)) {
 			throw new ResultException(TipsEnum.TIP_LOG_ERROR.getMsg("excel写入文件路径不存在"));
 		}
-		IOUtils.fileExists(path);
+		writeSheet(datas, new File(path), sheetMax, subject);
+	}
+
+	default <T> void writeSheet(List<T> datas, File file, int sheetMax, boolean subject) {
+		if (ListUtils.isBlank(datas)) {
+			throw new ResultException(TipsEnum.TIP_LOG_INFO.getMsg("excel写入文件数据源为空"));
+		}
+		if (Objects.isNull(file)) {
+			throw new ResultException(TipsEnum.TIP_LOG_ERROR.getMsg("excel写入文件不能为空"));
+		}
+		IOUtils.fileExists(file);
 		sheetMax = sheetMax >= Constant.EXCEL_SHEET_MAX ? Constant.EXCEL_SHEET_MAX : sheetMax;
 		long sheetNum = Math.round(NumUtils.div(datas.size(), sheetMax));
 		for (int i = 1; i <= sheetNum; i++) {
-			writeSheet(i, datas, path, sheetMax, subject);
+			writeSheet(i, datas, file, sheetMax, subject);
 		}
 	}
 
@@ -180,15 +265,103 @@ public interface ExcelUtils {
 	 * @param subject 是否添加标题,默认true添加false不添加,真实数据从第2行开始写入
 	 */
 	default <T> void writeSheet(int index, List<T> datas, String path, int sheetMax, boolean subject) {
-		try {
-			writeSheet(index, datas, new FileOutputStream(path), sheetMax, subject);
+		writeSheet(index, datas, new File(path), sheetMax, subject);
+	}
+
+	default <T> void writeSheet(int index, List<T> datas, File file, int sheetMax, boolean subject) {
+		try (OutputStream fos = new FileOutputStream(file);) {
+			handleSheet(index, datas, fos, sheetMax, subject);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new ResultException("文件输出流初始化失败");
 		}
 	}
 
-	<T> void writeSheet(int index, List<T> datas, OutputStream os, int sheetMax, boolean subject);
+	/**
+	 * 导出excel数据表格:<br>
+	 * 1.默认导出的文件名:数据导出<br>
+	 * 2.默认文件后缀为xls<br>
+	 * 3.默认文件名字节数组为本地默认编码<br>
+	 * 4.默认导出时文件名的编码为本地默认编码<br>
+	 * 5.默认每个sheet页最大行数为65535<br>
+	 * 6.默认每个sheet页都有标题
+	 * 
+	 * @param resp 响应
+	 * @param datas 需要导出的数据
+	 */
+	default <T> void exportExcel(List<T> datas, HttpServletResponse resp) {
+		exportExcel(datas, resp, Constant.EXCEL_FILE_NAME);
+	}
+
+	default <T> void exportExcel(List<T> datas, HttpServletResponse resp, String excelName) {
+		exportExcel(datas, resp, excelName, Charset.defaultCharset());
+	}
+
+	default <T> void exportExcel(List<T> datas, HttpServletResponse resp, String excelName, Charset encode) {
+		exportExcel(datas, resp, excelName, encode, Charset.defaultCharset());
+	}
+
+	default <T> void exportExcel(List<T> datas, HttpServletResponse resp, String excelName, Charset encode,
+			Charset decode) {
+		exportExcel(datas, resp, excelName, encode.displayName(), decode.displayName());
+	}
+
+	default <T> void exportExcel(List<T> datas, HttpServletResponse resp, String excelName, String encode,
+			String decode) {
+		exportExcel(datas, resp, excelName, encode, decode, Constant.EXCEL_SHEET_MAX);
+	}
+
+	default <T> void exportExcel(List<T> datas, HttpServletResponse resp, String excelName, String encode,
+			String decode, int sheetMax) {
+		exportExcel(datas, resp, excelName, encode, decode, sheetMax, true);
+	}
+
+	/**
+	 * 导出excel到前端页面下载,若是中文文件名,默认编码时要用gbk,解码时要用iso8859-1
+	 * 
+	 * @param <T> 泛型
+	 * @param datas 导出的数据
+	 * @param resp 响应
+	 * @param excelName 文件名,可不带后缀,默认后缀为xls
+	 * @param encode 文件名编码的字符集
+	 * @param decode 文件名解压的字符集
+	 * @param sheetMax 每个sheet页的最大写入行数,默认65535
+	 * @param subject 是否添加标题,默认true添加false不添加,真实数据从第2行开始写入
+	 */
+	default <T> void exportExcel(List<T> datas, HttpServletResponse resp, String excelName, String encode,
+			String decode, int sheetMax, boolean subject) {
+		resp.setContentType("application/download");
+		try (OutputStream os = resp.getOutputStream();) {
+			// 处理文件名后缀
+			String fileExtension = Files.getFileExtension(excelName);
+			if (StrUtils.isBlank(fileExtension)) {
+				excelName += "." + Constant.EXCEL_FILE_NAME_SUFFIX;
+			}
+			// 处理文件编码
+			resp.setHeader("Content-Disposition",
+					"attchament;filename=" + new String(excelName.getBytes(encode), Charset.forName(decode)));
+			// 处理每个sheet页最大行数据
+			sheetMax = sheetMax >= Constant.EXCEL_SHEET_MAX ? Constant.EXCEL_SHEET_MAX : sheetMax;
+			long sheetNum = Math.round(NumUtils.div(datas.size(), sheetMax));
+			for (int i = 1; i <= sheetNum; i++) {
+				handleSheet(i, datas, os, sheetMax, subject);
+			}
+		} catch (IOException e) {
+			throw new ResultException("导出失败", e);
+		}
+	}
+
+	/**
+	 * 文件导出到输入流中生成excel文件
+	 * 
+	 * @param <T> 泛型
+	 * @param index sheet页下标,从1开始
+	 * @param datas 实体类数据源集合或Map数据源集合
+	 * @param os 输入流
+	 * @param sheetMax 每个sheet页的最大写入行数,默认65535
+	 * @param subject 是否添加标题,默认true添加false不添加,真实数据从第2行开始写入
+	 */
+	<T> void handleSheet(int index, List<T> datas, OutputStream os, int sheetMax, boolean subject);
 
 	/**
 	 * 处理每一个单元格
@@ -387,201 +560,5 @@ public interface ExcelUtils {
 	default List<Map<String, Object>> readExcel(InputStream is, boolean firstUse, List<String> titles, int beginRow,
 			int beginCol) {
 		return null;
-	}
-
-	/**
-	 * 导出excel数据表格
-	 * 
-	 * @param resp 响应
-	 * @param datas 需要导出的数据
-	 * @param excelName excel表格名字
-	 */
-	public static <T> void exportExcel(List<T> datas, HttpServletResponse resp, String excelName) {
-		resp.setContentType("application/download");
-		try (OutputStream os = resp.getOutputStream();) {
-			resp.setHeader("Content-Disposition", "attchament;filename="
-					+ new String((excelName + ".xls").getBytes("GBK"), StandardCharsets.ISO_8859_1));
-			exportExcel(datas, os);
-		} catch (IOException e) {
-			throw new ResultException("导出失败", e);
-		}
-	}
-
-	/**
-	 * 导出excel数据表格
-	 * 
-	 * @param os 输出流
-	 * @param datas 需要到处的数据
-	 */
-	public static <T> void exportExcel(List<T> datas, OutputStream os) {
-		if (ListUtils.isBlank(datas)) {
-			return;
-		}
-		try (Workbook book = new HSSFWorkbook();) {
-			Class<? extends Object> clazz = datas.get(0).getClass();
-			// 若存在Excel注解,判断是否能导入导出,没有注解默认可以导入导出
-			if (clazz.isAnnotationPresent(Excel.class)) {
-				Excel excel = clazz.getAnnotation(Excel.class);
-				if (excel.excelAction() == ExcelAction.IMPORT) {
-					throw new ResultException("该类只允许导入,不允许导出");
-				}
-				// TODO 取出所有不可导出字段,与后面字段上带ExcelColumn注解的比较
-			}
-			Field[] fields = clazz.getDeclaredFields();
-			Sheet sheet = book.createSheet();
-			// 生成第一行的字段
-			Row firstRow = sheet.createRow(0);
-			int j = 0;
-			String titleName = "";
-			for (Field field : fields) {
-				field.setAccessible(true);
-				// 常量和静态变量不导出
-				if (Modifier.isFinal(field.getModifiers()) || Modifier.isStatic(field.getModifiers())) {
-					continue;
-				}
-				// 默认所有字段都可以导出导入,判断有ExcelColumn的个别行为
-				if (field.isAnnotationPresent(ExcelColumn.class)) {
-					ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-					// 只允许导入,不允许导出或什么都不做
-					if (excelColumn.excelAction() == ExcelAction.IMPORT
-							|| excelColumn.excelAction() == ExcelAction.NOTHING) {
-						continue;
-					}
-					if (StrUtils.isNotBlank(excelColumn.value())) {
-						titleName = excelColumn.value();
-					}
-					// 第一行的显示字段:ExcelColumn->ApiModelProperty->Java属性
-					if (StrUtils.isBlank(excelColumn.value())) {
-						if (field.isAnnotationPresent(ApiModelProperty.class)) {
-							ApiModelProperty apiModelProperty = field.getAnnotation(ApiModelProperty.class);
-							titleName = StrUtils.isBlank(apiModelProperty.value()) ? field.getName()
-									: apiModelProperty.value();
-						} else {
-							titleName = field.getName();
-						}
-					}
-				} else {
-					if (field.isAnnotationPresent(ApiModelProperty.class)) {
-						ApiModelProperty apiModelProperty = field.getAnnotation(ApiModelProperty.class);
-						titleName = StrUtils.isBlank(apiModelProperty.value()) ? field.getName()
-								: apiModelProperty.value();
-					} else {
-						titleName = field.getName();
-					}
-				}
-				Cell c = firstRow.createCell(j);
-				c.setCellValue(titleName);
-				j++;
-			}
-			// 写入数据
-			for (int row = 0; row < datas.size(); row++) {
-				Row r = sheet.createRow(row + 1);
-				int i = 0;
-				T data = datas.get(row);
-				for (Field field : fields) {
-					field.setAccessible(true);
-					if (Modifier.isFinal(field.getModifiers()) || Modifier.isStatic(field.getModifiers())) {
-						continue;
-					}
-					if (field.isAnnotationPresent(ExcelColumn.class)) {
-						ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-						// 只允许导入,不允许导出
-						if (excelColumn.excelAction() == ExcelAction.IMPORT
-								|| excelColumn.excelAction() == ExcelAction.NOTHING) {
-							continue;
-						}
-						// 是否有特殊值需要选择
-						if (excelColumn.propConverter() != PropConverter.class) {
-							Class<? extends PropConverter> select = excelColumn.propConverter();
-							setCellValue(r, i, PropConverter.getMember(select.getEnumConstants(), field.get(data)));
-							i++;
-							continue;
-						}
-					}
-					setCellValue(r, i, field.get(data));
-					i++;
-				}
-			}
-			book.write(os);
-		} catch (IOException | IllegalArgumentException | IllegalAccessException | SecurityException e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * 获得单元格值
-	 * 
-	 * @param cell 单元格
-	 * @return 单元格值
-	 */
-	public static Object getCellValue(Cell cell) {
-		if (Objects.isNull(cell)) {
-			return "";
-		}
-		switch (cell.getCellType()) {
-		case BOOLEAN:
-			return cell.getBooleanCellValue();
-		case NUMERIC:
-			if (DateUtil.isCellDateFormatted(cell)) {
-				return cell.getDateCellValue();
-			}
-			return cell.getNumericCellValue();
-		case STRING:
-			return cell.getStringCellValue();
-		case FORMULA:
-			if (cell.getCachedFormulaResultType() == CellType.NUMERIC) {
-				return cell.getNumericCellValue();
-			} else {
-				return cell.getRichStringCellValue().getString();
-			}
-		default:
-			return cell.getErrorCellValue();
-		}
-	}
-
-	/**
-	 * 设置单元格格式以及值
-	 * 
-	 * @param cell 单元格
-	 * @param value 单元格值
-	 */
-	static void setCellValue(Cell cell, Object value) {
-		Class<? extends Object> clazz = value.getClass();
-		if (clazz == Boolean.class || clazz == boolean.class) {
-			cell.setCellValue(Boolean.valueOf(value.toString()));
-		} else if (NumberUtils.isCreatable(value.toString())) {
-			cell.setCellValue(Double.valueOf(value.toString()));
-		} else if (clazz == Date.class) {
-			cell.setCellValue((Date) value);
-		} else {
-			cell.setCellValue(value.toString());
-		}
-	}
-
-	/**
-	 * 根据值创建不同类型的Cell并设置值
-	 * 
-	 * @param row 行
-	 * @param index 行中的第几个cell
-	 * @param value 值
-	 */
-	static void setCellValue(Row row, int index, Object value) {
-		if (Objects.isNull(row)) {
-			return;
-		}
-		if (Objects.isNull(value)) {
-			row.createCell(index).setCellValue("");
-			return;
-		}
-		Class<? extends Object> clazz = value.getClass();
-		if (clazz == Boolean.class || clazz == boolean.class) {
-			row.createCell(index, CellType.BOOLEAN).setCellValue(Boolean.valueOf(value.toString()));
-		} else if (value instanceof Number) {
-			row.createCell(index, CellType.NUMERIC).setCellValue(Double.valueOf(value.toString()));
-		} else if (value instanceof Date) {
-			row.createCell(index).setCellValue(DateUtils.formatDateTime((Date) value));
-		} else {
-			row.createCell(index, CellType.STRING).setCellValue(String.valueOf(value));
-		}
 	}
 }

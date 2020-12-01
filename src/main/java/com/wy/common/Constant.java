@@ -20,6 +20,16 @@ public interface Constant {
 	int EXCEL_SHEET_MAX = 65535;
 
 	/**
+	 * exce导出时的默认文件名
+	 */
+	String EXCEL_FILE_NAME = "数据导出";
+
+	/**
+	 * excel文件不带后缀时的默认后缀
+	 */
+	String EXCEL_FILE_NAME_SUFFIX = "xls";
+
+	/**
 	 * 未知
 	 */
 	String STR_UNKNOWN = "UNKNOWN";
