@@ -92,11 +92,4 @@ public @interface ExcelColumn {
 	 * @return 可选值字符串数组 FIXME 未使用
 	 */
 	String[] options() default {};
-
-	/**
-	 * 该方法只能用在其他实体类字段上,指明另一个类中的需要导入导出的同名属性
-	 * 
-	 * @return 关联实体类中需要导入导出的值
-	 */
-	ExcelRelated[] excelRelated() default {};
 }

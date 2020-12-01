@@ -1,7 +1,7 @@
 package com.wy.excel.enums;
 
 /**
- * excel导入导出时字段的行为
+ * excel导入导出时字段的行为,顺序不可修改
  * 
  * @author ParadiseWY
  * @date 2020-11-18 16:18:26
@@ -9,12 +9,12 @@ package com.wy.excel.enums;
  */
 public enum ExcelAction {
 
-	/** 导入和导出 */
-	ALL,
+	/** 既不导入也不导出 */
+	NOTHING,
 	/** 只导入 */
 	IMPORT,
 	/** 只导出 */
 	EXPORT,
-	/** 既不导入也不导出 */
-	NOTHING;
+	/** 导入和导出 */
+	ALL;
 }

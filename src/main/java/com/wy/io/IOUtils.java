@@ -54,7 +54,7 @@ import com.wy.utils.StrUtils;
  * 
  * @author 万杨
  */
-public final class IOUtils {
+public final class IOUtils extends org.apache.commons.io.IOUtils {
 
 	/**
 	 * 文件后缀类型归类

@@ -3,6 +3,7 @@ package com.wy.excel;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -12,7 +13,6 @@ import java.util.Objects;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
@@ -47,11 +47,6 @@ public class ExcelMapUtils implements ExcelUtils {
 		return Inner.INSTANCE;
 	}
 
-	@Override
-	public ExcelUtils newExcelUtils() {
-		return getInstance();
-	}
-
 	/**
 	 * 判断泛型的类型是否为Map或其子类
 	 * 
@@ -64,20 +59,30 @@ public class ExcelMapUtils implements ExcelUtils {
 		}
 	}
 
+	/**
+	 * 处理每一个sheet页
+	 *
+	 * @param <T> 泛型
+	 * @param index sheet页下标,从1开始
+	 * @param datas Map数据源集合,若是非Map类型,会抛异常
+	 * @param path 文件路径,若文件路径不带后缀,则默认后缀为.xls
+	 * @param sheetMax 每个sheet页的最大写入行数,默认65535
+	 * @param subject 是否添加标题,默认true添加false不添加,真实数据从第2行开始写入
+	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> void handleSheet(int index, List<T> list, String path, boolean subject) {
-		judgeClass(list.get(0).getClass());
-		List<Map<String, Object>> datas = (List<Map<String, Object>>) list;
+	public <T> void writeSheet(int index, List<T> datas, String path, int sheetMax, boolean subject) {
+		judgeClass(datas.get(0).getClass());
+		List<Map<String, Object>> dataMaps = (List<Map<String, Object>>) datas;
 		try (FileOutputStream fos = new FileOutputStream(path);
 				Workbook workbook = ExcelUtils.generateWorkbook(path);) {
 			Sheet sheet = workbook.createSheet();
 			int beginRow = subject ? 1 : 0;
-			List<String> allField = new ArrayList<>(datas.get(0).keySet());
-			for (int i = 0; i < list.size(); i++) {
+			List<String> allField = new ArrayList<>(dataMaps.get(0).keySet());
+			for (int i = 0; i < datas.size(); i++) {
 				Row row = sheet.createRow(beginRow);
 				for (int j = 0; j < allField.size(); j++) {
-					Object object = datas.get(i).get(allField.get(j));
+					Object object = dataMaps.get(i).get(allField.get(j));
 					Cell cell = row.createCell(j);
 					if (object != null && Date.class == object.getClass()) {
 						cell.setCellValue((Date) object);
@@ -88,13 +93,16 @@ public class ExcelMapUtils implements ExcelUtils {
 				beginRow++;
 			}
 			if (subject) {
-				createFirst(allField, sheet);
+				genereateTitle(sheet, allField);
 			}
 			workbook.write(fos);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
+	
+	@Override
+	public <T> void writeSheet(int index, List<T> datas, OutputStream os, int sheetMax, boolean subject) {}
 
 	/**
 	 * 处理listmap中的第一行
@@ -102,8 +110,7 @@ public class ExcelMapUtils implements ExcelUtils {
 	 * @param titles 所有的字段,此处因为是map,不可标注注解,只能是字段名
 	 * @param sheet sheet页
 	 */
-	@Override
-	public void createFirst(List<String> titles, Sheet sheet) {
+	public void genereateTitle(Sheet sheet, List<String> titles) {
 		Row first = sheet.createRow(0);
 		int j = 0;
 		for (String title : titles) {
@@ -193,7 +200,7 @@ public class ExcelMapUtils implements ExcelUtils {
 				}
 			}
 			return res;
-		} catch (EncryptedDocumentException | InvalidFormatException | IOException e) {
+		} catch (EncryptedDocumentException | IOException e) {
 			e.printStackTrace();
 			log.error(TipsEnum.TIP_LOG_ERROR.getMsg("上传excel文件解析失败->" + e.getMessage()));
 		}

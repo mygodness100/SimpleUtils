@@ -2,11 +2,12 @@ package com.wy.excel;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -15,13 +16,13 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
-import com.wy.common.Constant;
-import com.wy.enums.TipsEnum;
 import com.wy.excel.annotation.Excel;
-import com.wy.excel.annotation.ExcelRelated;
+import com.wy.excel.annotation.ExcelColumn;
 import com.wy.excel.enums.ExcelAction;
 import com.wy.result.ResultException;
 import com.wy.utils.StrUtils;
+
+import io.swagger.annotations.ApiModelProperty;
 
 /**
  * 实体类Excel工具类
@@ -43,46 +44,47 @@ public class ExcelModelUtils implements ExcelUtils {
 		return Inner.INSTANCE;
 	}
 
-	@Override
-	public ExcelUtils newExcelUtils() {
-		return getInstance();
-	}
-
 	/**
 	 * 处理每一个sheet页
 	 *
 	 * @param <T> 泛型
-	 * @param index sheet页下标
-	 * @param list 数据集
-	 * @param path 写文件路径
-	 * @param subject 是否需要第一排的标题
+	 * @param index sheet页下标,从1开始
+	 * @param datas 实体类数据源集合
+	 * @param path 文件路径,若文件路径不带后缀,则默认后缀为.xls
+	 * @param sheetMax 每个sheet页的最大写入行数,默认65535
+	 * @param subject 是否添加标题,默认true添加false不添加,真实数据从第2行开始写入
 	 */
 	@Override
-	public <T> void handleSheet(int index, List<T> list, String path, boolean subject) {
+	public <T> void writeSheet(int index, List<T> datas, String path, int sheetMax, boolean subject) {
 		try (FileOutputStream fos = new FileOutputStream(path);
 				Workbook workbook = ExcelUtils.generateWorkbook(path);) {
 			Sheet sheet = workbook.createSheet();
+			// 若有标题,从第2行开始写数据
 			int beginRow = subject ? 1 : 0;
-			Class<?> clazz = list.get(0).getClass();
-			List<Field> fields = handleClass(clazz);
-			int startNo = index * Constant.EXCEL_SHEET_MAX;
-			int endNo = Math.min(startNo + Constant.EXCEL_SHEET_MAX, list.size());
+			int startNo = (index - 1) * sheetMax;
+			int endNo = Math.min(startNo + sheetMax, datas.size());
+			Class<?> clazz = datas.get(0).getClass();
+			List<Field> fields = handleClass(clazz, ExcelAction.EXPORT);
 			for (int i = startNo; i < endNo; i++) {
 				Row row = sheet.createRow(beginRow);
-				T t = list.get(i);
+				T t = datas.get(i);
 				for (int j = 0; j < fields.size(); j++) {
 					handleCell(row.createCell(j), t, fields.get(j));
 				}
 				beginRow++;
 			}
+			// 若标题存在,生成第1行的标题
 			if (subject) {
-				createFirst(sheet, fields);
+				genereateTitle(sheet, fields);
 			}
 			workbook.write(fos);
 		} catch (IOException | SecurityException e) {
 			e.printStackTrace();
 		}
 	}
+	
+	@Override
+	public <T> void writeSheet(int index, List<T> datas, OutputStream os, int sheetMax, boolean subject) {}
 
 	/**
 	 * 从类中筛选出需要导出的字段
@@ -91,30 +93,46 @@ public class ExcelModelUtils implements ExcelUtils {
 	 * @param clazz 泛型的字节码
 	 * @return 需要导出的字段集合
 	 */
-	private <T> List<Field> handleClass(Class<T> clazz) {
+	private <T> List<Field> handleClass(Class<T> clazz, ExcelAction excelAction) {
+		if (excelAction != ExcelAction.IMPORT || excelAction != ExcelAction.EXPORT) {
+			throw new ResultException("只能是导入或导出类型");
+		}
+		// 所有待处理字段集合
 		List<Field> result = new ArrayList<>();
-		Field[] parentFields = clazz.getSuperclass().getDeclaredFields();
-		if (ArrayUtils.isNotEmpty(parentFields)) {
-			result.addAll(Arrays.asList(parentFields));
-		}
-		Field[] childFields = clazz.getDeclaredFields();
-		if (ArrayUtils.isEmpty(childFields)) {
-			throw new ResultException("该类中没有定义字段,请检查");
-		} else {
-			result.addAll(Arrays.asList(childFields));
-		}
+		// 处理父类@Excel
+		handleClass(result, clazz.getSuperclass(), excelAction);
+		// 处理本类@Excel
+		handleClass(result, clazz, excelAction);
 		return result.stream().filter(t -> {
-			if (t.isAnnotationPresent(Excel.class)) {
-				if (t.getAnnotation(Excel.class).excelAction() == ExcelAction.EXPORT
-						|| t.getAnnotation(Excel.class).excelAction() == ExcelAction.ALL) {
+			// 剔除静态变量和常量
+			if (Modifier.isStatic(t.getModifiers()) || Modifier.isFinal(t.getModifiers())) {
+				return false;
+			}
+			if (t.isAnnotationPresent(ExcelColumn.class)) {
+				if (t.getAnnotation(ExcelColumn.class).excelAction() == excelAction
+						|| t.getAnnotation(ExcelColumn.class).excelAction() == ExcelAction.ALL) {
 					return true;
 				}
 			}
-			if (t.isAnnotationPresent(ExcelRelated.class)) {
-				return true;
-			}
-			return false;
+			return true;
 		}).collect(Collectors.toList());
+	}
+
+	private void handleClass(List<Field> result, Class<?> clazz, ExcelAction excelAction) {
+		boolean flag = true;
+		if (clazz.isAnnotationPresent(Excel.class)) {
+			Excel annotation = clazz.getAnnotation(Excel.class);
+			if (annotation.excelAction() == ExcelAction.NOTHING
+					|| (annotation.excelAction() != ExcelAction.ALL && annotation.excelAction() != excelAction)) {
+				flag = false;
+			}
+		}
+		if (flag) {
+			Field[] fields = clazz.getDeclaredFields();
+			if (ArrayUtils.isNotEmpty(fields)) {
+				result.addAll(Arrays.asList(fields));
+			}
+		}
 	}
 
 	/**
@@ -129,44 +147,8 @@ public class ExcelModelUtils implements ExcelUtils {
 	public <T> void handleCell(Cell cell, T t, Field field) {
 		field.setAccessible(true);
 		try {
-			if (field.isAnnotationPresent(ExcelRelated.class)) {
-				handleRelatedCell(cell, t, field);
-			} else {
-				ExcelUtils.setCellValue(cell, field, field.get(t));
-			}
+			ExcelUtils.setCellValue(cell, field.get(t));
 		} catch (IllegalArgumentException | IllegalAccessException e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * 给关联类中的字段进行赋值,若有值则赋值,若无值则填""
-	 * 
-	 * @param <T> 泛型
-	 * @param cell excel的单元格
-	 * @param t 数据
-	 * @param field 字段
-	 */
-	@Override
-	public <T> void handleRelatedCell(Cell cell, T t, Field field) {
-		try {
-			Object related = field.get(t);
-			String[] columns = field.getAnnotation(ExcelRelated.class).relatedAttrs();
-			if (Objects.nonNull(related)) {
-				for (String column : columns) {
-					Field declaredField = related.getClass().getDeclaredField(column);
-					if (Objects.isNull(declaredField)) {
-						throw new ResultException(TipsEnum.TIP_LOG_ERROR.getMsg("excel操作关联类中relatedAttribute属性设置错误"));
-					}
-					declaredField.setAccessible(true);
-					ExcelUtils.setCellValue(cell, declaredField, declaredField.get(related));
-				}
-			} else {
-				for (int i = 0; i < columns.length; i++) {
-					ExcelUtils.setCellValue(cell, null, null);
-				}
-			}
-		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
 			e.printStackTrace();
 		}
 	}
@@ -177,26 +159,22 @@ public class ExcelModelUtils implements ExcelUtils {
 	 * @param sheet sheet页
 	 * @param fields 第一行的字段
 	 */
-	@Override
-	public void createFirst(Sheet sheet, List<Field> fields) {
+	public void genereateTitle(Sheet sheet, List<Field> fields) {
 		Row first = sheet.createRow(0);
 		for (int i = 0; i < fields.size(); i++) {
 			Cell cell = first.createCell(i);
 			Field field = fields.get(i);
 			field.setAccessible(true);
-			if (field.isAnnotationPresent(Excel.class)) {
-				String title = StrUtils.isBlank(field.getAnnotation(Excel.class).value()) ? field.getName()
-						: field.getAnnotation(Excel.class).value();
-				cell.setCellValue(title);
-			} else if (field.isAnnotationPresent(ExcelRelated.class)) {
-				String[] excels = field.getAnnotation(ExcelRelated.class).relatedAttrs();
-				for (String excel : excels) {
-					if (StrUtils.isBlank(excel)) {
-						throw new ResultException(TipsEnum.TIP_LOG_ERROR.getMsg("关联字段缺少value或targetAttr"));
-					}
-					cell.setCellValue(excel);
-				}
+			String title = field.getName();
+			if (field.isAnnotationPresent(ApiModelProperty.class)) {
+				title = StrUtils.isBlank(field.getAnnotation(ApiModelProperty.class).value()) ? title
+						: field.getAnnotation(ApiModelProperty.class).value();
 			}
+			if (field.isAnnotationPresent(ExcelColumn.class)) {
+				title = StrUtils.isBlank(field.getAnnotation(ExcelColumn.class).value()) ? title
+						: field.getAnnotation(ExcelColumn.class).value();
+			}
+			cell.setCellValue(title);
 		}
 	}
 }
