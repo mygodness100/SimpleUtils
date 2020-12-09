@@ -27,14 +27,7 @@ public final class DateUtils {
 		}
 	};
 
-	private DateUtils() {
-	}
-
-	private static SimpleDateFormat get(String pattern) {
-		SimpleDateFormat sdf = threadLocal.get();
-		sdf.applyPattern(pattern);
-		return sdf;
-	}
+	private DateUtils() {}
 
 	/**
 	 * 返回指定时间是周几
@@ -141,6 +134,12 @@ public final class DateUtils {
 			return threadLocal.get().format(date);
 		}
 		return get(pattern).format(date);
+	}
+
+	private static SimpleDateFormat get(String pattern) {
+		SimpleDateFormat sdf = threadLocal.get();
+		sdf.applyPattern(pattern);
+		return sdf;
 	}
 
 	/**
