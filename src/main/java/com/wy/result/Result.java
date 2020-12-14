@@ -19,28 +19,54 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * @apiNote 结果,code为1时成功,其他全部失败 
+ * result工具类,code为1时成功,其他全部失败
+ * 
  * @author ParadiseWY
- * @date 2020年2月20日 下午2:47:26
+ * @date 2020-02-20 14:47:42
+ * @git {@link https://github.com/mygodness100}
  */
 @Getter
 @Setter
-@AllArgsConstructor
 @Builder
+@AllArgsConstructor
 public class Result<T> implements Serializable {
+
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * 成功或失败的code,或其他类型code
+	 */
 	private int code;
 
+	/**
+	 * 成功或失败的消息
+	 */
 	private String msg;
 
+	/**
+	 * 数据
+	 */
 	private T data;
 
+	/**
+	 * 分页时当前页数
+	 */
 	private int pageIndex;
 
+	/**
+	 * 分页时每页条数
+	 */
 	private int pageSize;
 
+	/**
+	 * 分页时数据的总条数
+	 */
 	private long total;
+
+	/**
+	 * 分页时的总页数
+	 */
+	private long totalPage;
 
 	public static <T> Result<T> ok() {
 		return ok(null);
@@ -65,9 +91,9 @@ public class Result<T> implements Serializable {
 	public static <T> Result<T> error(String msg) {
 		return error(0, msg);
 	}
-	
-	public static <T> Result<T> error(TipCode tipCode){
-		return error(tipCode.getCode(),tipCode.getMsg());
+
+	public static <T> Result<T> error(TipCode tipCode) {
+		return error(tipCode.getCode(), tipCode.getMsg());
 	}
 
 	public static <T> Result<T> error(int code, String msg) {
@@ -119,11 +145,13 @@ public class Result<T> implements Serializable {
 				.msg(StrUtils.isBlank(msg)
 						? (code > 0 ? Internation.getStr("msg_success") : Internation.getStr("msg_fail"))
 						: msg)
-				.data(t).pageIndex(pageIndex).pageSize(pageSize).total(total).build();
+				.data(t).pageIndex(pageIndex).pageSize(pageSize).total(total)
+				.totalPage(pageSize == 0 ? 0 : (long) (Math.ceil((double) total / pageSize))).build();
 	}
 
 	/**
 	 * 将从数据库自定义sql语句取出的结果集的key转换为驼峰形式
+	 * 
 	 * @param data 下划线形式的结果集
 	 * @return 驼峰形式的结果集
 	 */
@@ -141,6 +169,7 @@ public class Result<T> implements Serializable {
 
 	/**
 	 * 将从数据库自定义sql语句取出的结果集的key转换为驼峰形式
+	 * 
 	 * @param datas 下划线形式的结果集
 	 * @return 驼峰形式的结果集
 	 */
