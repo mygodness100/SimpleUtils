@@ -5,15 +5,17 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
+import com.google.common.primitives.Ints;
 import com.wy.result.ResultException;
 
-public class NumUtils {
+public class NumUtils extends NumberUtils {
 
 	private NumUtils() {
 
@@ -111,8 +113,9 @@ public class NumUtils {
 	 * 将数字转化为指定的字符串格式
 	 * 
 	 * @param dou 指定的double数字
-	 * @param format 需要进行转换的格式,若是需要格式固定,则使用0占位符,num超出的整数部分会全部显示,但是不足的会补0 num超出的小数部分为四舍五入,若是不足则补0
-	 *        example 3.4555,进行0.000kg格式化后为3.456kg,进行#.###kg为3.456kg;
+	 * @param format 需要进行转换的格式,若是需要格式固定,则使用0占位符,num超出的整数部分会全部显示,但是不足的会补0
+	 *        num超出的小数部分为四舍五入,若是不足则补0 example
+	 *        3.4555,进行0.000kg格式化后为3.456kg,进行#.###kg为3.456kg;
 	 *        34.4555进行0.000格式化为34.456,进行#.###为34.456;
 	 *        34.455记性000.0000格式化为034.4550,进行###.####格式化为34.455
 	 */
@@ -134,86 +137,6 @@ public class NumUtils {
 	public static String getLocalCurrency(Number num, Locale locale) {
 		NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
 		return nf.format(num);
-	}
-
-	/**
-	 * 获取数组中最大值
-	 */
-	public static final long getMax(long[] arrs) {
-		Arrays.sort(arrs);
-		return arrs[arrs.length - 1];
-	}
-
-	/**
-	 * 获取数组中最小值
-	 */
-	public static final long getMin(long[] arrs) {
-		Arrays.sort(arrs);
-		return arrs[0];
-	}
-
-	/**
-	 * 获取数组中最大值
-	 */
-	public static final int getMax(int[] arrs) {
-		Arrays.sort(arrs);
-		return arrs[arrs.length - 1];
-	}
-
-	/**
-	 * 获取数组中最小值
-	 */
-	public static final int getMin(int[] arrs) {
-		Arrays.sort(arrs);
-		return arrs[0];
-	}
-
-	/**
-	 * 获取数组中最大值
-	 */
-	public static final int getMax(short[] arrs) {
-		Arrays.sort(arrs);
-		return arrs[arrs.length - 1];
-	}
-
-	/**
-	 * 获取数组中最小值
-	 */
-	public static final int getMin(short[] arrs) {
-		Arrays.sort(arrs);
-		return arrs[0];
-	}
-
-	/**
-	 * 获取数组中最大值
-	 */
-	public static final double getMax(double[] arrs) {
-		Arrays.sort(arrs);
-		return arrs[arrs.length - 1];
-	}
-
-	/**
-	 * 获取数组中最小值
-	 */
-	public static final double getMin(double[] arrs) {
-		Arrays.sort(arrs);
-		return arrs[0];
-	}
-
-	/**
-	 * 获取数组中最大值
-	 */
-	public static final double getMax(float[] arrs) {
-		Arrays.sort(arrs);
-		return arrs[arrs.length - 1];
-	}
-
-	/**
-	 * 获取数组中最小值
-	 */
-	public static final double getMin(float[] arrs) {
-		Arrays.sort(arrs);
-		return arrs[0];
 	}
 
 	/**
@@ -307,40 +230,6 @@ public class NumUtils {
 	}
 
 	/**
-	 * 将一个对象强行转换为long类型,该对象必须是一个整数字符串
-	 * 
-	 * @param obj 需要进行强转的对象,可以是object,string等
-	 * @return 强转后的long类型值
-	 */
-	public static Long parseLong(Object obj) {
-		Optional<Object> optional = Optional.ofNullable(obj);
-		if (!optional.isPresent()) {
-			throw new NullPointerException("obj can't be null");
-		}
-		if (NumberUtils.isDigits(optional.get().toString())) {
-			throw new RuntimeException("this obj is not a number string");
-		}
-		return Long.parseLong(optional.get().toString());
-	}
-
-	/**
-	 * 将一个对象强行转换为int类型,该对象必须是一个整数字符串
-	 * 
-	 * @param obj 需要进行强转的对象,可以是object,string等
-	 * @return 强转后的值
-	 */
-	public static <T> Integer parseInt(Object obj) {
-		Optional<Object> optional = Optional.ofNullable(obj);
-		if (!optional.isPresent()) {
-			throw new NullPointerException("obj can't be null");
-		}
-		if (NumberUtils.isDigits(optional.get().toString())) {
-			throw new RuntimeException("this obj is not a number string");
-		}
-		return Integer.parseInt(optional.get().toString());
-	}
-
-	/**
 	 * 对象是否能强转为一个整数,不包括小数,科学计数法等
 	 * 
 	 * @param obj 对象
@@ -349,7 +238,7 @@ public class NumUtils {
 	public static boolean isDigits(Object obj) {
 		Optional<Object> optional = Optional.ofNullable(obj);
 		if (!optional.isPresent()) {
-			throw new NullPointerException("obj can't be null");
+			return false;
 		}
 		return NumberUtils.isDigits(optional.get().toString());
 	}
@@ -362,7 +251,87 @@ public class NumUtils {
 	 */
 	public static boolean isParsable(Object obj) {
 		Optional<Object> optional = Optional.ofNullable(obj);
-		ObjUtils.isNull(optional);
+		if (!optional.isPresent()) {
+			return false;
+		}
 		return NumberUtils.isParsable(optional.get().toString());
+	}
+
+	/**
+	 * 将一个对象强行转换为long类型,该对象必须是一个整数字符串
+	 * 
+	 * @param obj 需要进行强转的对象,可以是object,string等
+	 * @return 强转后的long类型值
+	 */
+	public static Long parseLong(Object obj) {
+		if (!isDigits(obj)) {
+			throw new NumberFormatException("this obj is not a number string");
+		}
+		return Long.parseLong(Optional.ofNullable(obj).get().toString());
+	}
+
+	/**
+	 * 将一个对象强行转换为int类型,该对象必须是一个整数字符串
+	 * 
+	 * @param obj 需要进行强转的对象,可以是object,string等
+	 * @return 强转后的值
+	 */
+	public static <T> Integer parseInt(Object obj) {
+		if (!isDigits(obj)) {
+			throw new NumberFormatException("this obj is not a number string");
+		}
+		return Integer.parseInt(Optional.ofNullable(obj).get().toString());
+	}
+
+	/**
+	 * 将一组int类型转换为一个List<Integer>
+	 * 
+	 * @param args int数据
+	 * @return List<Integer>
+	 */
+	public static List<Integer> toListInt(int... args) {
+		return Ints.asList(args);
+	}
+
+	/**
+	 * 将一个List<Integer>转换为一个int数组
+	 * 
+	 * @param list 需要转换的list
+	 * @return int数组
+	 */
+	public static int[] toArrayInt(List<Integer> list) {
+		return Ints.toArray(list);
+	}
+
+	/**
+	 * 将一组int类型根据执行分隔符拼接成一个字符串
+	 * 
+	 * @param delimeter 分隔符
+	 * @param args int数据
+	 * @return 拼接后的字符串
+	 */
+	public static String joinInt(String delimeter, int... args) {
+		return Ints.join(delimeter, args);
+	}
+
+	/**
+	 * 将多个int数组拼接成一个int数组,数组中的元素根据顺序拼接
+	 * 
+	 * @param arr 多个数组
+	 * @return 拼接后的单个数组
+	 */
+	public static int[] concatInt(int[]... arr) {
+		return Ints.concat(arr);
+	}
+
+	/**
+	 * 判断数组中是否包含某个元素
+	 * 
+	 * @param arr 数组
+	 * @param a 所包含的元素
+	 * @return true包含,false不包含
+	 */
+	public static boolean contain(int[] arr, int a) {
+		return Ints.contains(arr, a);
 	}
 }
