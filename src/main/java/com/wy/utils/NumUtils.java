@@ -365,4 +365,18 @@ public class NumUtils {
 		ObjUtils.isNull(optional);
 		return NumberUtils.isParsable(optional.get().toString());
 	}
+
+	/**
+	 * 获得范围内的随机数,包括开头的结尾
+	 * 
+	 * @param a 最小数
+	 * @param b 最大数,不能比最小数小,否则返回-1
+	 * @return a和b之间的随机整数
+	 */
+	public static int getRandomInt(int a, int b) {
+		if (a > b) {
+			return -1;
+		}
+		return a + (int) ((b + 1 - a) * Math.random());
+	}
 }
