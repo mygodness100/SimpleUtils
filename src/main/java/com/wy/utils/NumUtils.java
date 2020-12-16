@@ -13,13 +13,13 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 import com.wy.result.ResultException;
 
-public class NumUtils extends NumberUtils {
+import lombok.experimental.UtilityClass;
 
-	private NumUtils() {
-
-	}
+@UtilityClass
+public final class NumUtils extends NumberUtils {
 
 	/**
 	 * double类型避免精度缺失的加法运算
@@ -113,9 +113,8 @@ public class NumUtils extends NumberUtils {
 	 * 将数字转化为指定的字符串格式
 	 * 
 	 * @param dou 指定的double数字
-	 * @param format 需要进行转换的格式,若是需要格式固定,则使用0占位符,num超出的整数部分会全部显示,但是不足的会补0
-	 *        num超出的小数部分为四舍五入,若是不足则补0 example
-	 *        3.4555,进行0.000kg格式化后为3.456kg,进行#.###kg为3.456kg;
+	 * @param format 需要进行转换的格式,若是需要格式固定,则使用0占位符,num超出的整数部分会全部显示,但是不足的会补0 num超出的小数部分为四舍五入,若是不足则补0
+	 *        example 3.4555,进行0.000kg格式化后为3.456kg,进行#.###kg为3.456kg;
 	 *        34.4555进行0.000格式化为34.456,进行#.###为34.456;
 	 *        34.455记性000.0000格式化为034.4550,进行###.####格式化为34.455
 	 */
@@ -258,12 +257,38 @@ public class NumUtils extends NumberUtils {
 	}
 
 	/**
+	 * 将一个对象强行转换为int类型,该对象必须是一个整数字符串
+	 * 
+	 * @param obj 需要进行强转的对象,可以是object,string等
+	 * @return 强转后的值
+	 */
+	public static Integer toInt(Object obj) {
+		if (!isDigits(obj)) {
+			throw new NumberFormatException("this obj is not a number string");
+		}
+		return Integer.parseInt(Optional.ofNullable(obj).get().toString());
+	}
+
+	/**
+	 * 将一个对象强行转换为int类型,若该对象不可转为整数,则返回默认值
+	 * 
+	 * @param obj 需要进行强转的对象,可以是object,string等
+	 * @return 强转后的值
+	 */
+	public static Integer toInt(Object obj, int defaultValue) {
+		if (!isDigits(obj)) {
+			return defaultValue;
+		}
+		return Integer.parseInt(Optional.ofNullable(obj).get().toString());
+	}
+
+	/**
 	 * 将一个对象强行转换为long类型,该对象必须是一个整数字符串
 	 * 
 	 * @param obj 需要进行强转的对象,可以是object,string等
 	 * @return 强转后的long类型值
 	 */
-	public static Long parseLong(Object obj) {
+	public static Long toLong(Object obj) {
 		if (!isDigits(obj)) {
 			throw new NumberFormatException("this obj is not a number string");
 		}
@@ -271,16 +296,16 @@ public class NumUtils extends NumberUtils {
 	}
 
 	/**
-	 * 将一个对象强行转换为int类型,该对象必须是一个整数字符串
+	 * 将一个对象强行转换为long类型,若该对象不可转为整数,则返回默认值
 	 * 
 	 * @param obj 需要进行强转的对象,可以是object,string等
-	 * @return 强转后的值
+	 * @return 强转后的long类型值
 	 */
-	public static <T> Integer parseInt(Object obj) {
+	public static Long toLong(Object obj, long defaultValue) {
 		if (!isDigits(obj)) {
-			throw new NumberFormatException("this obj is not a number string");
+			return defaultValue;
 		}
-		return Integer.parseInt(Optional.ofNullable(obj).get().toString());
+		return Long.parseLong(Optional.ofNullable(obj).get().toString());
 	}
 
 	/**
@@ -289,7 +314,7 @@ public class NumUtils extends NumberUtils {
 	 * @param args int数据
 	 * @return List<Integer>
 	 */
-	public static List<Integer> toListInt(int... args) {
+	public static List<Integer> toIntList(int... args) {
 		return Ints.asList(args);
 	}
 
@@ -299,8 +324,50 @@ public class NumUtils extends NumberUtils {
 	 * @param list 需要转换的list
 	 * @return int数组
 	 */
-	public static int[] toArrayInt(List<Integer> list) {
-		return Ints.toArray(list);
+	public static int[] toIntArray(List<Integer> list) {
+		if (ListUtils.isNotBlank(list)) {
+			return Ints.toArray(list);
+		}
+		return null;
+	}
+
+	/**
+	 * 将一个List<Integer>转换为一个int数组,需要至少jdk8以上,且效率低于{@link #toIntArray(List)}
+	 * 
+	 * @param list 需要转换的list
+	 * @return int数组
+	 */
+	public static int[] toIntArray8(List<Integer> list) {
+		if (ListUtils.isNotBlank(list)) {
+			return Arrays.stream(list.toArray(new Integer[list.size()])).mapToInt(Integer::valueOf).toArray();
+		}
+		return null;
+	}
+
+	/**
+	 * 将一个List<Long>转换为一个long数组
+	 * 
+	 * @param list 需要转换的list
+	 * @return long数组
+	 */
+	public static long[] toLongArray(List<Long> list) {
+		if (ListUtils.isNotBlank(list)) {
+			return Longs.toArray(list);
+		}
+		return null;
+	}
+
+	/**
+	 * 将一个List<Long>转换为一个long数组,需要至少jdk8以上,且效率低于{@link #toLongArray(List)}
+	 * 
+	 * @param list 需要转换的list
+	 * @return long数组
+	 */
+	public static long[] toLongArr(List<Long> list) {
+		if (ListUtils.isNotBlank(list)) {
+			return Arrays.stream(list.toArray(new Long[list.size()])).mapToLong(Long::valueOf).toArray();
+		}
+		return null;
 	}
 
 	/**
@@ -336,7 +403,7 @@ public class NumUtils extends NumberUtils {
 	}
 
 	/**
-	 * 获得范围内的随机数,包括开头的结尾
+	 * 获得范围内的随机数,包括开头和结尾
 	 * 
 	 * @param a 最小数
 	 * @param b 最大数,不能比最小数小,否则返回-1

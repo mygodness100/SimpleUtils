@@ -1,13 +1,15 @@
 package com.wy.utils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public final class ListUtils {
 
 	public static <T> boolean isBlank(Collection<T> list) {
@@ -16,50 +18,6 @@ public final class ListUtils {
 
 	public static <T> boolean isNotBlank(Collection<T> list) {
 		return !isBlank(list);
-	}
-
-	/**
-	 * 将Integer的list集合转换成int集合
-	 */
-	public static int[] toIntArr(List<Integer> list) {
-		if (isNotBlank(list)) {
-			return Arrays.stream(list.toArray(new Integer[list.size()])).mapToInt(Integer::valueOf).toArray();
-		}
-		return null;
-	}
-
-	/**
-	 * 将Integer的list集合转换成int集合
-	 */
-	public static long[] toLongArr(List<Long> list) {
-		if (isNotBlank(list)) {
-			return Arrays.stream(list.toArray(new Long[list.size()])).mapToLong(Long::valueOf).toArray();
-		}
-		return null;
-	}
-
-	/**
-	 * 将Integer的list集合转换成int集合
-	 */
-	public static double[] toDoubleArr(List<Double> list) {
-		if (isNotBlank(list)) {
-			return Arrays.stream(list.toArray(new Double[list.size()])).mapToDouble(Double::valueOf).toArray();
-		}
-		return null;
-	}
-
-	/**
-	 * 将boolean的对象类转换为boolean基础数据集合
-	 */
-	public static boolean[] toBooleanArr(List<Boolean> list) {
-		if (isNotBlank(list)) {
-			boolean[] arr = new boolean[list.size()];
-			for (int i = 0; i < list.size(); i++) {
-				arr[i] = list.get(i);
-			}
-			return arr;
-		}
-		return null;
 	}
 
 	/**
@@ -92,11 +50,9 @@ public final class ListUtils {
 			tempData = res.get(data.get(column));
 			if (isBlank(tempData)) {
 				tempData = new ArrayList<>();
-				tempData.add(data);
 				res.put(data.get(column), tempData);
-			} else {
-				tempData.add(data);
 			}
+			tempData.add(data);
 		}
 		return res;
 	}
@@ -122,8 +78,7 @@ public final class ListUtils {
 
 		private List<T> list = new ArrayList<>();
 
-		public ListBuilder() {
-		}
+		public ListBuilder() {}
 
 		public ListBuilder(T val) {
 			list.add(val);
