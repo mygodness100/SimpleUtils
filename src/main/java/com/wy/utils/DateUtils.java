@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import com.wy.enums.DateEnum;
+import com.wy.enums.RegexEnum;
 
 /**
  * calender的set方法和add方法都可以重新设定时间,但是set方法设置时间后会重新计算
@@ -15,7 +16,7 @@ import com.wy.enums.DateEnum;
  */
 public final class DateUtils {
 
-	public static final long DAY = 1000 * 60 * 60 * 24;
+	public static final long ONE_DAY = 1000 * 60 * 60 * 24;
 
 	public static final String DEFAULT_PATTERN = DateEnum.DATETIME.getPattern();
 
@@ -143,9 +144,30 @@ public final class DateUtils {
 	}
 
 	/**
-	 * 将时间字符串转换为yyyy-MM-dd HH:mm:ss
+	 * 根据时间格式将时间字符串转换为对应格式,年月日的分隔符只支持/,-和无,若有时分秒,必须是:
+	 * 
+	 * @param date 需要被转换的时间
+	 * @return 转换后的时间
 	 */
 	public static Date parse(String date) {
+		if (StrUtils.checkValidity(date, RegexEnum.REGEX_DATE)) {
+			return parse(date, DateEnum.DATE);
+		}
+		if (StrUtils.checkValidity(date, RegexEnum.REGEX_DATE_NONE)) {
+			return parse(date, DateEnum.DATE_NONE);
+		}
+		if (StrUtils.checkValidity(date, RegexEnum.REGEX_DATE_SLASH)) {
+			return parse(date, DateEnum.DATE_SLASH);
+		}
+		if (StrUtils.checkValidity(date, RegexEnum.REGEX_DATETIME)) {
+			return parse(date, DateEnum.DATETIME);
+		}
+		if (StrUtils.checkValidity(date, RegexEnum.REGEX_DATETIME_NONE)) {
+			return parse(date, DateEnum.DATETIME_NONE);
+		}
+		if (StrUtils.checkValidity(date, RegexEnum.REGEX_DATETIME_SLASH)) {
+			return parse(date, DateEnum.DATETIME_SLASH);
+		}
 		return parse(date, DEFAULT_PATTERN);
 	}
 
@@ -169,24 +191,6 @@ public final class DateUtils {
 			e.printStackTrace();
 		}
 		return null;
-	}
-
-	/**
-	 * 计算2个时间之间的毫秒数,后减前
-	 */
-	public static long span2Date(Date date1, Date date2) {
-		return date2.getTime() - date1.getTime();
-	}
-
-	public static long span2Date(String date1Str, String date2Str) {
-		Date date1 = DateUtils.parse(date1Str, DateEnum.DATETIME);
-		Date date2 = DateUtils.parse(date2Str, DateEnum.DATETIME);
-		return date2.getTime() - date1.getTime();
-	}
-
-	public static long span2Date(String date1Str, Date date2) {
-		Date date1 = DateUtils.parse(date1Str, DateEnum.DATETIME);
-		return date2.getTime() - date1.getTime();
 	}
 
 	/**
@@ -581,5 +585,90 @@ public final class DateUtils {
 			return true;
 		}
 		return false;
+	}
+
+	public static long span2Date(String date1Str, String date2Str) {
+		Date date1 = DateUtils.parse(date1Str);
+		Date date2 = DateUtils.parse(date2Str);
+		return date2.getTime() - date1.getTime();
+	}
+
+	public static long span2Date(String date1Str, Date date2) {
+		Date date1 = DateUtils.parse(date1Str);
+		return date2.getTime() - date1.getTime();
+	}
+
+	/**
+	 * 计算2个时间yyyy-MM-dd HH:mm:ss之间的毫秒数,后减前
+	 * 
+	 * @param date1 开始时间
+	 * @param date2 结束时间
+	 * @return 相差毫秒数,可小于0
+	 */
+	public static long span2Date(Date date1, Date date2) {
+		return date2.getTime() - date1.getTime();
+	}
+
+	/**
+	 * 获得2个yyyy-MM-dd或yyyy-MM-dd HH:mm:ss之间相隔的年数
+	 * 
+	 * @param begintime 开始时间
+	 * @param endtime 结束时间
+	 * @return 间隔年数.可小于0
+	 */
+	public static int span2Year(String begintime, String endtime) {
+		Date date1 = parse(begintime, DateEnum.DATE);
+		Date date2 = parse(endtime, DateEnum.DATE);
+		return span2Year(date1, date2);
+	}
+
+	public static int span2Year(Date begintime, Date endtime) {
+		Calendar c = Calendar.getInstance();
+		c.setTime(begintime);
+		int m1 = c.get(Calendar.YEAR);
+		c.setTime(endtime);
+		int m2 = c.get(Calendar.YEAR);
+		return m2 - m1;
+	}
+
+	/**
+	 * 获得2个yyyy-MM-dd或yyyy-MM-dd HH:mm:ss之间相隔的月数
+	 * 
+	 * @param begintime 开始时间
+	 * @param endtime 结束时间
+	 * @return 相隔月数.可小于0
+	 */
+	public static int span2Month(String begintime, String endtime) {
+		Date date1 = parse(begintime, DateEnum.DATE);
+		Date date2 = parse(endtime, DateEnum.DATE);
+		return span2Month(date1, date2);
+	}
+
+	public static int span2Month(Date begintime, Date endtime) {
+		Calendar c = Calendar.getInstance();
+		c.setTime(begintime);
+		int year1 = c.get(Calendar.YEAR);
+		int m1 = c.get(Calendar.MONTH);
+		c.setTime(endtime);
+		int year2 = c.get(Calendar.YEAR);
+		int m2 = c.get(Calendar.MONTH);
+		return (year2 - year1) * 12 + (m2 - m1);
+	}
+
+	/**
+	 * 获得2个yyyy-MM-dd或yyyy-MM-dd HH:mm:ss之间相隔的天数
+	 * 
+	 * @param begintime 开始时间
+	 * @param endtime 结束时间
+	 * @return 相隔天数.可小于0
+	 */
+	public static int span2Day(String begintime, String endtime) {
+		Date date1 = parse(begintime, DateEnum.DATE);
+		Date date2 = parse(endtime, DateEnum.DATE);
+		return span2Day(date1, date2);
+	}
+
+	public static int span2Day(Date begintime, Date endtime) {
+		return (int) ((endtime.getTime() - begintime.getTime()) / ONE_DAY);
 	}
 }
