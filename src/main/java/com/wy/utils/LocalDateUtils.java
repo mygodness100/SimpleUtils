@@ -48,8 +48,7 @@ public class LocalDateUtils {
 		System.out.println(format(LocalDateTime.now(), DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")));
 	}
 
-	private LocalDateUtils() {
-	}
+	private LocalDateUtils() {}
 
 	private static Calendar getCalendar(Date date) {
 		Calendar calendar = Calendar.getInstance();
@@ -206,7 +205,7 @@ public class LocalDateUtils {
 	}
 
 	/**
-	 * 将时间格式为yyyy-MM-dd HH:mm:ss的字符串转为Date类型 FIXME
+	 * 将时间格式为yyyy-MM-dd HH:mm:ss的字符串转为Date类型
 	 * 
 	 * @param dateTime 时间字符串
 	 * @return date对象
@@ -216,7 +215,7 @@ public class LocalDateUtils {
 	}
 
 	/**
-	 * 将格式为yyyy-MM-dd的时间字符串转为Date类型,时分秒都为0 FIXME
+	 * 将格式为yyyy-MM-dd的时间字符串转为Date类型,时分秒都为0
 	 * 
 	 * @param date 时间字符串
 	 * @return date对象
@@ -226,7 +225,7 @@ public class LocalDateUtils {
 	}
 
 	/**
-	 * LocalDateTime无论如何进行格式化都会变成yyyy-MM-ddTHH:mm:ss形式,中间的-不会变 FIXME
+	 * LocalDateTime无论如何进行格式化都会变成yyyy-MM-ddTHH:mm:ss形式,中间的-不会变
 	 * 
 	 * @param localDateTime 需要进行格式化的字符串时间
 	 * @return 格式化后时间
@@ -240,7 +239,7 @@ public class LocalDateUtils {
 	}
 
 	/**
-	 * 获得当前时间所在月份的第一天时间 FIXME
+	 * 获得当前时间所在月份的第一天时间
 	 * 
 	 * @return 当前时间所在月第一天时间的时间
 	 */
@@ -253,7 +252,7 @@ public class LocalDateUtils {
 	}
 
 	/**
-	 * 获得指定时间所在月份的第一天时间 FIXME
+	 * 获得指定时间所在月份的第一天时间
 	 * 
 	 * @return 指定时间所在月第一天时间的时间
 	 */
@@ -262,7 +261,7 @@ public class LocalDateUtils {
 	}
 
 	/**
-	 * 时间比较 FIXME
+	 * 时间比较
 	 * 
 	 * @param temporalAccessor 时间
 	 * @return 是否符合条件,true符合,false不符合

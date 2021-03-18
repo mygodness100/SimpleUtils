@@ -18,7 +18,7 @@
 ///**
 // * 邮件收发类,收发之前需要将邮箱的smtp.pop设置打开,需要mail.jar和spring的相关包
 // * 
-// * @author 万杨 FIXME
+// * @author 万杨
 // */
 //public class MailUtils {
 //

@@ -11,7 +11,7 @@ import java.util.Locale;
 import com.wy.enums.SysEnum;
 
 /**
- * 获得系统和网络的一些信息 FIXME
+ * 获得系统和网络的一些信息
  *
  * @author ParadiseWY
  * @date 2018-02-26 20:39:28
@@ -41,7 +41,7 @@ public interface SysConfig {
 	}
 
 	/**
-	 * 获得本地服务器的ip,可能会有多个地址 FIXME
+	 * 获得本地服务器的ip,可能会有多个地址
 	 * 
 	 * @return 本地内网ip,非外网ip,若失败,返回127.0.01
 	 */
@@ -63,7 +63,7 @@ public interface SysConfig {
 	}
 
 	/**
-	 * 获得本地服务器mac地址,获取失败返回null FIXME
+	 * 获得本地服务器mac地址,获取失败返回null
 	 * 
 	 * @return mac地址,失败返回null
 	 */
